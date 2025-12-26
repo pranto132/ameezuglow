@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +29,40 @@ const AdminOrders = () => {
   const [invoiceOrder, setInvoiceOrder] = useState<any>(null);
   const invoiceRef = useRef<HTMLDivElement>(null);
 
-  const { data: orders, isLoading } = useQuery({
+  useEffect(() => {
+    // Realtime auto-refresh for orders list
+    const channel = supabase
+      .channel("admin-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        (payload) => {
+          console.log("[realtime] orders change", payload);
+          queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "order_items" },
+        (payload) => {
+          console.log("[realtime] order_items change", payload);
+          queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+        }
+      )
+      .subscribe((status) => {
+        console.log("[realtime] admin-orders-realtime status:", status);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  const {
+    data: orders,
+    isLoading,
+    error: ordersError,
+  } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -155,7 +188,18 @@ const AdminOrders = () => {
 
       {/* Table */}
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        {isLoading ? (
+        {ordersError ? (
+          <div className="p-8 text-center space-y-2">
+            <p className="font-medium text-foreground">অর্ডার দেখা যাচ্ছে না</p>
+            <p className="text-sm text-muted-foreground">
+              আপনার অ্যাকাউন্টে অ্যাডমিন পারমিশন নেই অথবা লগইন সেশন ঠিক নেই।
+            </p>
+            <Button variant="outline" onClick={() => window.location.assign("/admin/login")}
+            >
+              আবার লগইন করুন
+            </Button>
+          </div>
+        ) : isLoading ? (
           <div className="p-8 text-center">
             <Loader2 className="w-6 h-6 animate-spin mx-auto" />
           </div>

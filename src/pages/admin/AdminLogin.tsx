@@ -49,6 +49,12 @@ const AdminLogin = () => {
         if (error) {
           toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
         } else {
+          // Ensure the first-ever user can bootstrap admin access (only works if no admin exists)
+          const { error: bootstrapError } = await supabase.rpc("bootstrap_admin");
+          if (bootstrapError) {
+            console.log("bootstrap_admin skipped/failed:", bootstrapError.message);
+          }
+
           toast.success("লগইন সফল!");
           navigate("/admin");
         }
