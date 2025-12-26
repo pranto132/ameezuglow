@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -30,6 +30,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { items, getTotal, clearCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [didSubmit, setDidSubmit] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     customer_name: "",
@@ -151,9 +152,10 @@ const Checkout = () => {
       if (itemsError) throw itemsError;
 
       // Clear cart and redirect
-      clearCart();
+      setDidSubmit(true);
       toast.success("অর্ডার সফলভাবে সম্পন্ন হয়েছে!");
       navigate(`/order-success?order=${orderNumber}`);
+      clearCart();
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
@@ -177,10 +179,12 @@ const Checkout = () => {
 
   const selectedPaymentMethod = paymentMethods?.find((p) => p.type === formData.payment_method);
 
-  if (items.length === 0) {
-    navigate("/cart");
-    return null;
-  }
+  useEffect(() => {
+    // After successful submit we clear the cart, which would otherwise trigger the "empty cart" redirect.
+    if (!isSubmitting && !didSubmit && items.length === 0) {
+      navigate("/cart", { replace: true });
+    }
+  }, [didSubmit, isSubmitting, items.length, navigate]);
 
   return (
     <Layout>
