@@ -11,6 +11,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import Auth from "./pages/Auth";
+import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/AdminLogin";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/order-success" element={<OrderSuccess />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/orders" element={<Orders />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
