@@ -267,6 +267,7 @@ export type Database = {
           order_status: string | null
           payment_method: string
           payment_status: string | null
+          serial_number: number | null
           shipping_address: string
           shipping_cost: number | null
           subtotal: number
@@ -290,6 +291,7 @@ export type Database = {
           order_status?: string | null
           payment_method: string
           payment_status?: string | null
+          serial_number?: number | null
           shipping_address: string
           shipping_cost?: number | null
           subtotal: number
@@ -313,6 +315,7 @@ export type Database = {
           order_status?: string | null
           payment_method?: string
           payment_status?: string | null
+          serial_number?: number | null
           shipping_address?: string
           shipping_cost?: number | null
           subtotal?: number
@@ -527,6 +530,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_admin: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
