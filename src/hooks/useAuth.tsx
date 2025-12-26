@@ -79,7 +79,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) throw error;
+
+    // Ensure UI updates immediately even if onAuthStateChange is delayed
+    setSession(null);
+    setUser(null);
     setIsAdmin(false);
   };
 
