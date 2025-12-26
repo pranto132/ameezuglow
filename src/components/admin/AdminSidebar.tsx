@@ -34,6 +34,7 @@ const menuItems = [
   { title: "অর্ডার", url: "/admin/orders", icon: ShoppingCart },
   { title: "ক্যাটাগরি", url: "/admin/categories", icon: Tag },
   { title: "কুপন", url: "/admin/coupons", icon: Percent },
+  { title: "কাস্টমার", url: "/admin/customers", icon: Users },
 ];
 
 const settingsItems = [

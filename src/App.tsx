@@ -23,6 +23,7 @@ import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminBanners from "./pages/admin/AdminBanners";
 import AdminCMSPages from "./pages/admin/AdminCMSPages";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminCustomers from "./pages/admin/AdminCustomers";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="banners" element={<AdminBanners />} />
               <Route path="pages" element={<AdminCMSPages />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="customers" element={<AdminCustomers />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
