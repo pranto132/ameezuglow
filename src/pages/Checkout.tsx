@@ -277,16 +277,16 @@ const Checkout = () => {
                         }
                         className="grid grid-cols-2 gap-3"
                       >
-                        <div
+                        <label
+                          htmlFor="inside_dhaka"
                           className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
                             formData.delivery_area === "inside_dhaka"
                               ? "border-primary bg-primary/5 shadow-sm"
                               : "border-border hover:border-primary/50"
                           }`}
-                          onClick={() => setFormData((prev) => ({ ...prev, delivery_area: "inside_dhaka" }))}
                         >
                           <RadioGroupItem value="inside_dhaka" id="inside_dhaka" />
-                          <label htmlFor="inside_dhaka" className="flex-1 cursor-pointer">
+                          <div className="flex-1">
                             <span className="font-medium text-foreground block">ঢাকার ভেতরে</span>
                             <span className="text-sm text-primary font-bold">
                               {isFreeDelivery ? (
@@ -295,18 +295,18 @@ const Checkout = () => {
                                 <>৳{insideDhakaCharge}</>
                               )}
                             </span>
-                          </label>
-                        </div>
-                        <div
+                          </div>
+                        </label>
+                        <label
+                          htmlFor="outside_dhaka"
                           className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
                             formData.delivery_area === "outside_dhaka"
                               ? "border-primary bg-primary/5 shadow-sm"
                               : "border-border hover:border-primary/50"
                           }`}
-                          onClick={() => setFormData((prev) => ({ ...prev, delivery_area: "outside_dhaka" }))}
                         >
                           <RadioGroupItem value="outside_dhaka" id="outside_dhaka" />
-                          <label htmlFor="outside_dhaka" className="flex-1 cursor-pointer">
+                          <div className="flex-1">
                             <span className="font-medium text-foreground block">ঢাকার বাইরে</span>
                             <span className="text-sm text-primary font-bold">
                               {isFreeDelivery ? (
@@ -315,8 +315,8 @@ const Checkout = () => {
                                 <>৳{outsideDhakaCharge}</>
                               )}
                             </span>
-                          </label>
-                        </div>
+                          </div>
+                        </label>
                       </RadioGroup>
                       {freeDeliveryMin > 0 && !isFreeDelivery && (
                         <p className="text-sm text-muted-foreground mt-2">
