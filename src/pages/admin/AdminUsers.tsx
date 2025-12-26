@@ -30,7 +30,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Shield, Loader2, Trash2 } from "lucide-react";
+import { Users, UserPlus, Shield, Loader2, Trash2, KeyRound } from "lucide-react";
 import { format } from "date-fns";
 
 interface UserRole {
@@ -45,8 +45,11 @@ const AdminUsers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isResetOpen, setIsResetOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [role, setRole] = useState<"admin" | "staff">("staff");
 
   // Fetch all users with roles
@@ -115,6 +118,38 @@ const AdminUsers = () => {
     },
   });
 
+  // Reset password mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
+      const response = await supabase.functions.invoke("reset-user-password", {
+        body: { userId, newPassword },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({ title: "সফল!", description: "পাসওয়ার্ড রিসেট হয়েছে" });
+      setIsResetOpen(false);
+      setSelectedUserId(null);
+      setNewPassword("");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "ত্রুটি",
+        description: error.message || "পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -134,6 +169,33 @@ const AdminUsers = () => {
       return;
     }
     createUserMutation.mutate({ email, password, role });
+  };
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserId || !newPassword) {
+      toast({
+        title: "ত্রুটি",
+        description: "নতুন পাসওয়ার্ড প্রয়োজন",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({
+        title: "ত্রুটি",
+        description: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+        variant: "destructive",
+      });
+      return;
+    }
+    resetPasswordMutation.mutate({ userId: selectedUserId, newPassword });
+  };
+
+  const openResetDialog = (userId: string) => {
+    setSelectedUserId(userId);
+    setNewPassword("");
+    setIsResetOpen(true);
   };
 
   const getRoleBadge = (role: string) => {
@@ -297,13 +359,22 @@ const AdminUsers = () => {
                       ? format(new Date(userRole.created_at), "dd/MM/yyyy HH:mm")
                       : "-"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openResetDialog(userRole.user_id)}
+                      title="পাসওয়ার্ড রিসেট"
+                    >
+                      <KeyRound className="w-4 h-4 text-amber-500" />
+                    </Button>
                     {userRole.user_id !== session?.user?.id && (
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => deleteRoleMutation.mutate(userRole.id)}
                         disabled={deleteRoleMutation.isPending}
+                        title="ডিলিট"
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
@@ -322,6 +393,39 @@ const AdminUsers = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>পাসওয়ার্ড রিসেট করুন</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">নতুন পাসওয়ার্ড</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="কমপক্ষে ৬ অক্ষর"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending}>
+              {resetPasswordMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  রিসেট হচ্ছে...
+                </>
+              ) : (
+                "পাসওয়ার্ড রিসেট করুন"
+              )}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
