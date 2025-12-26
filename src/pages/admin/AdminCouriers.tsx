@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Key, Check, X } from "lucide-react";
 
 const AdminCouriers = () => {
   const queryClient = useQueryClient();
@@ -21,6 +22,8 @@ const AdminCouriers = () => {
     inside_dhaka_charge: "60",
     outside_dhaka_charge: "120",
     free_delivery_min_order: "",
+    api_key: "",
+    api_secret: "",
     is_active: true,
   });
 
@@ -41,6 +44,8 @@ const AdminCouriers = () => {
         inside_dhaka_charge: parseFloat(data.inside_dhaka_charge),
         outside_dhaka_charge: parseFloat(data.outside_dhaka_charge),
         free_delivery_min_order: data.free_delivery_min_order ? parseFloat(data.free_delivery_min_order) : null,
+        api_key: data.api_key || null,
+        api_secret: data.api_secret || null,
         is_active: data.is_active,
       };
       if (editingCourier) {
@@ -72,7 +77,16 @@ const AdminCouriers = () => {
   });
 
   const resetForm = () => {
-    setFormData({ name: "", type: "", inside_dhaka_charge: "60", outside_dhaka_charge: "120", free_delivery_min_order: "", is_active: true });
+    setFormData({ 
+      name: "", 
+      type: "", 
+      inside_dhaka_charge: "60", 
+      outside_dhaka_charge: "120", 
+      free_delivery_min_order: "", 
+      api_key: "",
+      api_secret: "",
+      is_active: true 
+    });
     setEditingCourier(null);
   };
 
@@ -84,6 +98,8 @@ const AdminCouriers = () => {
       inside_dhaka_charge: courier.inside_dhaka_charge?.toString() || "60",
       outside_dhaka_charge: courier.outside_dhaka_charge?.toString() || "120",
       free_delivery_min_order: courier.free_delivery_min_order?.toString() || "",
+      api_key: courier.api_key || "",
+      api_secret: courier.api_secret || "",
       is_active: courier.is_active,
     });
     setIsDialogOpen(true);
@@ -100,22 +116,111 @@ const AdminCouriers = () => {
           <DialogTrigger asChild>
             <Button className="btn-primary"><Plus className="w-4 h-4 mr-2" /> নতুন কুরিয়ার</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>{editingCourier ? "কুরিয়ার এডিট" : "নতুন কুরিয়ার"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(formData); }} className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>নাম</Label><Input value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} required /></div>
-                <div><Label>টাইপ</Label><Input value={formData.type} onChange={(e) => setFormData((p) => ({ ...p, type: e.target.value }))} placeholder="pathao, redx..." required /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>ঢাকার ভেতরে চার্জ (৳)</Label><Input type="number" value={formData.inside_dhaka_charge} onChange={(e) => setFormData((p) => ({ ...p, inside_dhaka_charge: e.target.value }))} /></div>
-                <div><Label>ঢাকার বাইরে চার্জ (৳)</Label><Input type="number" value={formData.outside_dhaka_charge} onChange={(e) => setFormData((p) => ({ ...p, outside_dhaka_charge: e.target.value }))} /></div>
-              </div>
-              <div><Label>ফ্রি ডেলিভারি মিনিমাম (৳)</Label><Input type="number" value={formData.free_delivery_min_order} onChange={(e) => setFormData((p) => ({ ...p, free_delivery_min_order: e.target.value }))} placeholder="যেমন: 2000" /></div>
-              <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))} /><Label>অ্যাক্টিভ</Label></div>
-              <div className="flex justify-end gap-2">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="basic">বেসিক তথ্য</TabsTrigger>
+                  <TabsTrigger value="api">API সেটিংস</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="basic" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>নাম</Label>
+                      <Input 
+                        value={formData.name} 
+                        onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} 
+                        placeholder="Pathao Courier"
+                        required 
+                      />
+                    </div>
+                    <div>
+                      <Label>টাইপ</Label>
+                      <Input 
+                        value={formData.type} 
+                        onChange={(e) => setFormData((p) => ({ ...p, type: e.target.value }))} 
+                        placeholder="pathao, redx, steadfast..." 
+                        required 
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>ঢাকার ভেতরে চার্জ (৳)</Label>
+                      <Input 
+                        type="number" 
+                        value={formData.inside_dhaka_charge} 
+                        onChange={(e) => setFormData((p) => ({ ...p, inside_dhaka_charge: e.target.value }))} 
+                      />
+                    </div>
+                    <div>
+                      <Label>ঢাকার বাইরে চার্জ (৳)</Label>
+                      <Input 
+                        type="number" 
+                        value={formData.outside_dhaka_charge} 
+                        onChange={(e) => setFormData((p) => ({ ...p, outside_dhaka_charge: e.target.value }))} 
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>ফ্রি ডেলিভারি মিনিমাম (৳)</Label>
+                    <Input 
+                      type="number" 
+                      value={formData.free_delivery_min_order} 
+                      onChange={(e) => setFormData((p) => ({ ...p, free_delivery_min_order: e.target.value }))} 
+                      placeholder="যেমন: 2000" 
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch 
+                      checked={formData.is_active} 
+                      onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))} 
+                    />
+                    <Label>অ্যাক্টিভ</Label>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="api" className="space-y-4 mt-4">
+                  <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Key className="w-4 h-4 text-primary" />
+                      <span className="font-medium">API Credentials</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      কুরিয়ার সার্ভিসের API Key এবং Secret দিয়ে অটোমেটিক অর্ডার ক্রিয়েট এবং ট্র্যাকিং সক্রিয় করুন।
+                    </p>
+                  </div>
+                  <div>
+                    <Label>API Key</Label>
+                    <Input 
+                      value={formData.api_key} 
+                      onChange={(e) => setFormData((p) => ({ ...p, api_key: e.target.value }))} 
+                      placeholder="আপনার API Key দিন"
+                      type="password"
+                    />
+                  </div>
+                  <div>
+                    <Label>API Secret</Label>
+                    <Input 
+                      value={formData.api_secret} 
+                      onChange={(e) => setFormData((p) => ({ ...p, api_secret: e.target.value }))} 
+                      placeholder="আপনার API Secret দিন"
+                      type="password"
+                    />
+                  </div>
+                  <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      <strong>নোট:</strong> API credentials সঠিকভাবে সেট করলে অর্ডার পেজ থেকে সরাসরি কুরিয়ার অ্যাসাইন করতে পারবেন।
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>বাতিল</Button>
                 <Button type="submit" disabled={saveMutation.isPending} className="btn-primary">
                   {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -136,6 +241,7 @@ const AdminCouriers = () => {
                 <TableHead>ঢাকার ভেতরে</TableHead>
                 <TableHead>ঢাকার বাইরে</TableHead>
                 <TableHead>ফ্রি ডেলিভারি</TableHead>
+                <TableHead>API</TableHead>
                 <TableHead>স্ট্যাটাস</TableHead>
                 <TableHead className="text-right">অ্যাকশন</TableHead>
               </TableRow>
@@ -143,10 +249,26 @@ const AdminCouriers = () => {
             <TableBody>
               {couriers?.map((courier) => (
                 <TableRow key={courier.id}>
-                  <TableCell><div><p className="font-medium">{courier.name}</p><p className="text-sm text-muted-foreground uppercase">{courier.type}</p></div></TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{courier.name}</p>
+                      <p className="text-sm text-muted-foreground uppercase">{courier.type}</p>
+                    </div>
+                  </TableCell>
                   <TableCell>৳{courier.inside_dhaka_charge}</TableCell>
                   <TableCell>৳{courier.outside_dhaka_charge}</TableCell>
                   <TableCell>{courier.free_delivery_min_order ? `৳${courier.free_delivery_min_order}+` : "-"}</TableCell>
+                  <TableCell>
+                    {courier.api_key ? (
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">
+                        <Check className="w-3 h-3" /> কানেক্টেড
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                        <X className="w-3 h-3" /> সেট নেই
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <span className={`text-xs px-2 py-1 rounded-full ${courier.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                       {courier.is_active ? "অ্যাক্টিভ" : "ইনঅ্যাক্টিভ"}

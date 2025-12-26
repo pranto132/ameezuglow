@@ -44,6 +44,7 @@ const Checkout = () => {
     notes: "",
     payment_method: "cod",
     transaction_id: "",
+    delivery_area: "inside_dhaka" as "inside_dhaka" | "outside_dhaka",
   });
 
   // Pre-fill email from logged-in user
@@ -80,10 +81,10 @@ const Checkout = () => {
   });
 
   const subtotal = getTotal();
-  const isInsideDhaka = formData.city.toLowerCase().includes("ঢাকা") || formData.city.toLowerCase().includes("dhaka");
-  const shippingCost = courierServices
-    ? (isInsideDhaka ? Number(courierServices.inside_dhaka_charge) : Number(courierServices.outside_dhaka_charge))
-    : 60;
+  const isInsideDhaka = formData.delivery_area === "inside_dhaka";
+  const insideDhakaCharge = courierServices ? Number(courierServices.inside_dhaka_charge) : 60;
+  const outsideDhakaCharge = courierServices ? Number(courierServices.outside_dhaka_charge) : 120;
+  const shippingCost = isInsideDhaka ? insideDhakaCharge : outsideDhakaCharge;
   const freeDeliveryMin = courierServices?.free_delivery_min_order ? Number(courierServices.free_delivery_min_order) : 2000;
   const isFreeDelivery = subtotal >= freeDeliveryMin;
   const finalShipping = isFreeDelivery ? 0 : shippingCost;
@@ -266,6 +267,64 @@ const Checkout = () => {
                     ডেলিভারি ঠিকানা
                   </h2>
                   <div className="space-y-4">
+                    {/* Delivery Area Selector */}
+                    <div>
+                      <Label className="mb-3 block">ডেলিভারি এরিয়া *</Label>
+                      <RadioGroup
+                        value={formData.delivery_area}
+                        onValueChange={(value: "inside_dhaka" | "outside_dhaka") => 
+                          setFormData((prev) => ({ ...prev, delivery_area: value }))
+                        }
+                        className="grid grid-cols-2 gap-3"
+                      >
+                        <div
+                          className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                            formData.delivery_area === "inside_dhaka"
+                              ? "border-primary bg-primary/5 shadow-sm"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => setFormData((prev) => ({ ...prev, delivery_area: "inside_dhaka" }))}
+                        >
+                          <RadioGroupItem value="inside_dhaka" id="inside_dhaka" />
+                          <label htmlFor="inside_dhaka" className="flex-1 cursor-pointer">
+                            <span className="font-medium text-foreground block">ঢাকার ভেতরে</span>
+                            <span className="text-sm text-primary font-bold">
+                              {isFreeDelivery ? (
+                                <span className="text-green-600">ফ্রি ডেলিভারি!</span>
+                              ) : (
+                                <>৳{insideDhakaCharge}</>
+                              )}
+                            </span>
+                          </label>
+                        </div>
+                        <div
+                          className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                            formData.delivery_area === "outside_dhaka"
+                              ? "border-primary bg-primary/5 shadow-sm"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => setFormData((prev) => ({ ...prev, delivery_area: "outside_dhaka" }))}
+                        >
+                          <RadioGroupItem value="outside_dhaka" id="outside_dhaka" />
+                          <label htmlFor="outside_dhaka" className="flex-1 cursor-pointer">
+                            <span className="font-medium text-foreground block">ঢাকার বাইরে</span>
+                            <span className="text-sm text-primary font-bold">
+                              {isFreeDelivery ? (
+                                <span className="text-green-600">ফ্রি ডেলিভারি!</span>
+                              ) : (
+                                <>৳{outsideDhakaCharge}</>
+                              )}
+                            </span>
+                          </label>
+                        </div>
+                      </RadioGroup>
+                      {freeDeliveryMin > 0 && !isFreeDelivery && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          ৳{freeDeliveryMin}+ অর্ডারে ফ্রি ডেলিভারি
+                        </p>
+                      )}
+                    </div>
+
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="city">শহর *</Label>
