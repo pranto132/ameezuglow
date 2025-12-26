@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCartStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, CheckCircle, Truck, CreditCard, Smartphone } from "lucide-react";
@@ -28,6 +29,7 @@ const checkoutSchema = z.object({
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { items, getTotal, clearCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [didSubmit, setDidSubmit] = useState(false);
@@ -43,6 +45,13 @@ const Checkout = () => {
     payment_method: "cod",
     transaction_id: "",
   });
+
+  // Pre-fill email from logged-in user
+  useEffect(() => {
+    if (user?.email && !formData.customer_email) {
+      setFormData((prev) => ({ ...prev, customer_email: user.email || "" }));
+    }
+  }, [user]);
 
   const { data: paymentMethods } = useQuery({
     queryKey: ["payment-methods"],
