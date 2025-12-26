@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Search, Eye, Loader2 } from "lucide-react";
+import { Search, Eye, Loader2, FileText, Printer } from "lucide-react";
+import { Invoice } from "@/components/admin/Invoice";
+import { useReactToPrint } from "react-to-print";
 
 const statusOptions = [
   { value: "pending", label: "পেন্ডিং", color: "bg-orange-100 text-orange-700" },
@@ -24,6 +26,8 @@ const AdminOrders = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [invoiceOrder, setInvoiceOrder] = useState<any>(null);
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-orders"],
@@ -49,6 +53,40 @@ const AdminOrders = () => {
       return data;
     },
     enabled: !!selectedOrder,
+  });
+
+  const { data: invoiceItems } = useQuery({
+    queryKey: ["invoice-items", invoiceOrder?.id],
+    queryFn: async () => {
+      if (!invoiceOrder) return [];
+      const { data, error } = await supabase
+        .from("order_items")
+        .select("*")
+        .eq("order_id", invoiceOrder.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!invoiceOrder,
+  });
+
+  const { data: siteSettings } = useQuery({
+    queryKey: ["site-settings-invoice"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*");
+      if (error) throw error;
+      const settings: Record<string, string> = {};
+      data.forEach((s: any) => {
+        settings[s.key] = s.value;
+      });
+      return settings;
+    },
+  });
+
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice-${invoiceOrder?.order_number || ""}`,
   });
 
   const updateStatusMutation = useMutation({
@@ -171,9 +209,14 @@ const AdminOrders = () => {
                     {new Date(order.created_at).toLocaleDateString("bn-BD")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(order)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(order)} title="বিস্তারিত">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setInvoiceOrder(order)} title="ইনভয়েস">
+                        <FileText className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -268,6 +311,45 @@ const AdminOrders = () => {
                   <p className="text-sm">{selectedOrder.notes}</p>
                 </div>
               )}
+
+              {/* Print Invoice Button */}
+              <div className="flex justify-end pt-4 border-t">
+                <Button onClick={() => {
+                  setSelectedOrder(null);
+                  setInvoiceOrder(selectedOrder);
+                }}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  ইনভয়েস দেখুন
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Dialog */}
+      <Dialog open={!!invoiceOrder} onOpenChange={(open) => !open && setInvoiceOrder(null)}>
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="flex items-center justify-between">
+              <span>ইনভয়েস - {invoiceOrder?.order_number}</span>
+              <Button onClick={() => handlePrint()} className="mr-8">
+                <Printer className="w-4 h-4 mr-2" />
+                প্রিন্ট করুন
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          {invoiceOrder && invoiceItems && (
+            <div className="p-6 pt-4">
+              <Invoice
+                ref={invoiceRef}
+                order={invoiceOrder}
+                orderItems={invoiceItems}
+                siteName={siteSettings?.site_name || "Ameezuglow"}
+                sitePhone={siteSettings?.contact_phone}
+                siteEmail={siteSettings?.contact_email}
+                siteAddress={siteSettings?.address}
+              />
             </div>
           )}
         </DialogContent>
