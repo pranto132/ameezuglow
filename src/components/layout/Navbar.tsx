@@ -1,7 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
-import { ShoppingBag, Heart, Menu, X, Search, User, ChevronDown } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ShoppingBag, Heart, Menu, X, Search, User, ChevronDown, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartStore, useWishlistStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,16 +10,26 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const itemCount = useCartStore((state) => state.getItemCount());
   const wishlistCount = useWishlistStore((state) => state.items.length);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("লগআউট সফল!");
+    navigate("/");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -166,6 +177,40 @@ export const Navbar = () => {
                 )}
               </Link>
 
+              {/* User Account */}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-2.5 hover:bg-muted rounded-xl transition-colors relative">
+                      <User className="w-5 h-5 text-primary" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem className="text-muted-foreground text-sm" disabled>
+                      {user.email}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/orders" className="cursor-pointer">
+                        আমার অর্ডার
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      লগআউট
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="p-2.5 hover:bg-muted rounded-xl transition-colors"
+                >
+                  <User className="w-5 h-5 text-foreground/70" />
+                </Link>
+              )}
+
               {/* Mobile Menu Toggle */}
               <button
                 className="lg:hidden p-2.5 hover:bg-muted rounded-xl transition-colors"
@@ -255,6 +300,38 @@ export const Navbar = () => {
                 >
                   🔥 অফার দেখুন
                 </Link>
+
+                {/* User Auth in Mobile Menu */}
+                <div className="pt-4 mt-4 border-t border-border/50">
+                  {user ? (
+                    <div className="space-y-2">
+                      <p className="px-4 text-sm text-muted-foreground truncate">{user.email}</p>
+                      <div className="flex gap-2">
+                        <Link
+                          to="/orders"
+                          className="flex-1 py-2 text-center text-sm bg-muted rounded-lg hover:bg-muted/80"
+                        >
+                          আমার অর্ডার
+                        </Link>
+                        <button
+                          onClick={handleSignOut}
+                          className="flex-1 py-2 text-center text-sm text-destructive bg-destructive/10 rounded-lg hover:bg-destructive/20"
+                        >
+                          লগআউট
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Link
+                        to="/auth"
+                        className="flex-1 py-2 text-center text-sm font-medium bg-primary text-primary-foreground rounded-lg"
+                      >
+                        লগইন / সাইন আপ
+                      </Link>
+                    </div>
+                  )}
+                </div>
 
                 <div className="pt-4 mt-4 border-t border-border/50 flex gap-2">
                   <Link
