@@ -112,44 +112,35 @@ const Checkout = () => {
     try {
       const validated = checkoutSchema.parse(formData);
 
-      // Generate order number (add random suffix to avoid any rare collisions)
-      const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-      const orderNumber = `AMZ-${Date.now().toString(36).toUpperCase()}-${rand}`;
-      const orderId = createUuid();
-
-      // Create order (avoid returning row data to keep orders non-readable to public)
-      const { error: orderError } = await supabase.from("orders").insert({
-        id: orderId,
-        order_number: orderNumber,
-        customer_name: validated.customer_name,
-        customer_phone: validated.customer_phone,
-        customer_email: validated.customer_email || null,
-        shipping_address: validated.shipping_address,
-        city: validated.city,
-        area: validated.area || null,
-        notes: validated.notes || null,
-        subtotal,
-        shipping_cost: finalShipping,
-        total,
-        payment_method: validated.payment_method,
-        transaction_id: validated.transaction_id || null,
-        payment_status: validated.payment_method === "cod" ? "pending" : "awaiting_verification",
-        order_status: "pending",
+      // Create order via backend function (returns numeric serial order number)
+      const { data, error: fnError } = await supabase.functions.invoke("create-order", {
+        body: {
+          customer_name: validated.customer_name,
+          customer_phone: validated.customer_phone,
+          customer_email: validated.customer_email || null,
+          shipping_address: validated.shipping_address,
+          city: validated.city,
+          area: validated.area || null,
+          notes: validated.notes || null,
+          payment_method: validated.payment_method,
+          transaction_id: validated.transaction_id || null,
+          subtotal,
+          shipping_cost: finalShipping,
+          total,
+          items: items.map((item) => ({
+            id: item.id,
+            name_bn: item.name_bn,
+            quantity: item.quantity,
+            price: item.price,
+            sale_price: item.sale_price,
+          })),
+        },
       });
 
-      if (orderError) throw orderError;
+      if (fnError) throw fnError;
 
-      // Create order items
-      const orderItems = items.map((item) => ({
-        order_id: orderId,
-        product_id: item.id,
-        product_name: item.name_bn,
-        quantity: item.quantity,
-        price: item.sale_price || item.price,
-      }));
-
-      const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
-      if (itemsError) throw itemsError;
+      const orderNumber = (data as any)?.orderNumber as string | undefined;
+      if (!orderNumber) throw new Error("Order number missing from server response");
 
       // Clear cart and redirect
       setDidSubmit(true);
