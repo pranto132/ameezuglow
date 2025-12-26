@@ -18,19 +18,21 @@ Deno.serve(async (req) => {
     // Get the auth token from request
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.log("No authorization header");
       return new Response(
         JSON.stringify({ error: "No authorization header" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Verify the requesting user is an admin using anon client
+    // Verify the requesting user is an admin
     const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
     const { data: { user: requestingUser }, error: authError } = await anonClient.auth.getUser();
     if (authError || !requestingUser) {
+      console.log("Auth error:", authError);
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -46,64 +48,59 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData) {
+      console.log("Role check failed:", roleError);
       return new Response(
-        JSON.stringify({ error: "Only admins can create users" }),
+        JSON.stringify({ error: "Only admins can view users" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Parse request body
-    const { email, password, role, name } = await req.json();
-
-    if (!email || !password) {
-      return new Response(
-        JSON.stringify({ error: "Email and password are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Create service role client for admin operations
+    // Create service role client to get all users
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Create user with service role
-    const { data: newUser, error: createError } = await serviceClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Auto confirm email
-      user_metadata: { full_name: name || "" },
-    });
+    // Get all users
+    const { data: usersData, error: usersError } = await serviceClient.auth.admin.listUsers();
 
-    if (createError) {
+    if (usersError) {
+      console.log("Users fetch error:", usersError);
       return new Response(
-        JSON.stringify({ error: createError.message }),
+        JSON.stringify({ error: usersError.message }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Assign role if provided
-    if (role && newUser.user) {
-      const { error: roleInsertError } = await serviceClient
-        .from("user_roles")
-        .insert({ user_id: newUser.user.id, role });
+    // Get all roles
+    const { data: rolesData, error: rolesError } = await serviceClient
+      .from("user_roles")
+      .select("*");
 
-      if (roleInsertError) {
-        console.error("Role assignment error:", roleInsertError);
-        // User created but role assignment failed - still return success
-        return new Response(
-          JSON.stringify({ 
-            user: newUser.user, 
-            warning: "User created but role assignment failed" 
-          }),
-          { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    if (rolesError) {
+      console.log("Roles fetch error:", rolesError);
     }
 
+    // Combine users with their roles
+    const usersWithRoles = usersData.users.map((user) => {
+      const userRole = rolesData?.find((r) => r.user_id === user.id);
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || "",
+        role: userRole?.role || null,
+        role_id: userRole?.id || null,
+        created_at: user.created_at,
+      };
+    });
+
+    // Filter to only show users with roles
+    const usersWithRolesOnly = usersWithRoles.filter((u) => u.role !== null);
+
+    console.log("Fetched users:", usersWithRolesOnly.length);
+
     return new Response(
-      JSON.stringify({ user: newUser.user }),
-      { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ users: usersWithRolesOnly }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
