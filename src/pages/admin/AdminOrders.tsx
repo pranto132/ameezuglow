@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Search, Eye, Loader2, FileText, Printer } from "lucide-react";
+import { Search, Eye, Loader2, FileText, Printer, Truck } from "lucide-react";
 import { Invoice } from "@/components/admin/Invoice";
 import { useReactToPrint } from "react-to-print";
 
@@ -27,48 +28,57 @@ const AdminOrders = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [invoiceOrder, setInvoiceOrder] = useState<any>(null);
+  const [courierDialogOrder, setCourierDialogOrder] = useState<any>(null);
+  const [courierFormData, setCourierFormData] = useState({
+    courier_name: "",
+    tracking_number: "",
+  });
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Realtime auto-refresh for orders list
     const channel = supabase
       .channel("admin-orders-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
-        (payload) => {
-          console.log("[realtime] orders change", payload);
+        () => {
           queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "order_items" },
-        (payload) => {
-          console.log("[realtime] order_items change", payload);
+        () => {
           queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
         }
       )
-      .subscribe((status) => {
-        console.log("[realtime] admin-orders-realtime status:", status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
 
-  const {
-    data: orders,
-    isLoading,
-    error: ordersError,
-  } = useQuery({
+  const { data: orders, isLoading, error: ordersError } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
         .select("*")
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: courierServices } = useQuery({
+    queryKey: ["courier-services-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courier_services")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
       if (error) throw error;
       return data;
     },
@@ -105,9 +115,7 @@ const AdminOrders = () => {
   const { data: siteSettings } = useQuery({
     queryKey: ["site-settings-invoice"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("site_settings")
-        .select("*");
+      const { data, error } = await supabase.from("site_settings").select("*");
       if (error) throw error;
       const settings: Record<string, string> = {};
       data.forEach((s: any) => {
@@ -135,6 +143,47 @@ const AdminOrders = () => {
       toast.success("অর্ডার স্ট্যাটাস আপডেট হয়েছে");
     },
   });
+
+  const assignCourierMutation = useMutation({
+    mutationFn: async ({ id, courier_name, tracking_number }: { id: string; courier_name: string; tracking_number: string }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ 
+          courier_name, 
+          tracking_number,
+          order_status: "shipped" 
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast.success("কুরিয়ার অ্যাসাইন করা হয়েছে");
+      setCourierDialogOrder(null);
+      setCourierFormData({ courier_name: "", tracking_number: "" });
+    },
+    onError: () => {
+      toast.error("কুরিয়ার অ্যাসাইন করতে সমস্যা হয়েছে");
+    },
+  });
+
+  const handleOpenCourierDialog = (order: any) => {
+    setCourierDialogOrder(order);
+    setCourierFormData({
+      courier_name: order.courier_name || "",
+      tracking_number: order.tracking_number || "",
+    });
+  };
+
+  const handleAssignCourier = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!courierDialogOrder) return;
+    assignCourierMutation.mutate({
+      id: courierDialogOrder.id,
+      courier_name: courierFormData.courier_name,
+      tracking_number: courierFormData.tracking_number,
+    });
+  };
 
   const filteredOrders = orders?.filter((order) => {
     const matchesSearch =
@@ -194,8 +243,7 @@ const AdminOrders = () => {
             <p className="text-sm text-muted-foreground">
               আপনার অ্যাকাউন্টে অ্যাডমিন পারমিশন নেই অথবা লগইন সেশন ঠিক নেই।
             </p>
-            <Button variant="outline" onClick={() => window.location.assign("/admin/login")}
-            >
+            <Button variant="outline" onClick={() => window.location.assign("/admin/login")}>
               আবার লগইন করুন
             </Button>
           </div>
@@ -211,6 +259,7 @@ const AdminOrders = () => {
                 <TableHead>গ্রাহক</TableHead>
                 <TableHead>মোট</TableHead>
                 <TableHead>পেমেন্ট</TableHead>
+                <TableHead>কুরিয়ার</TableHead>
                 <TableHead>স্ট্যাটাস</TableHead>
                 <TableHead>তারিখ</TableHead>
                 <TableHead className="text-right">অ্যাকশন</TableHead>
@@ -229,6 +278,26 @@ const AdminOrders = () => {
                   <TableCell className="font-bold">৳{Number(order.total).toLocaleString()}</TableCell>
                   <TableCell>
                     <span className="text-sm capitalize">{order.payment_method}</span>
+                  </TableCell>
+                  <TableCell>
+                    {order.courier_name ? (
+                      <div>
+                        <p className="text-sm font-medium">{order.courier_name}</p>
+                        {order.tracking_number && (
+                          <p className="text-xs text-muted-foreground">{order.tracking_number}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenCourierDialog(order)}
+                        className="h-7 text-xs"
+                      >
+                        <Truck className="w-3 h-3 mr-1" />
+                        অ্যাসাইন করুন
+                      </Button>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Select
@@ -292,6 +361,32 @@ const AdminOrders = () => {
                   <p className="text-sm">{selectedOrder.shipping_address}</p>
                   <p className="text-sm">{selectedOrder.area}, {selectedOrder.city}</p>
                 </div>
+              </div>
+
+              {/* Courier Info */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Truck className="w-4 h-4" /> কুরিয়ার তথ্য
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenCourierDialog(selectedOrder)}
+                  >
+                    {selectedOrder.courier_name ? "এডিট" : "অ্যাসাইন করুন"}
+                  </Button>
+                </div>
+                {selectedOrder.courier_name ? (
+                  <div className="space-y-1">
+                    <p className="text-sm"><strong>কুরিয়ার:</strong> {selectedOrder.courier_name}</p>
+                    {selectedOrder.tracking_number && (
+                      <p className="text-sm"><strong>ট্র্যাকিং নম্বর:</strong> {selectedOrder.tracking_number}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">কুরিয়ার অ্যাসাইন করা হয়নি</p>
+                )}
               </div>
 
               {/* Order Items */}
@@ -367,6 +462,74 @@ const AdminOrders = () => {
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Courier Assignment Dialog */}
+      <Dialog open={!!courierDialogOrder} onOpenChange={(open) => !open && setCourierDialogOrder(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5" />
+              কুরিয়ার অ্যাসাইন করুন
+            </DialogTitle>
+          </DialogHeader>
+          {courierDialogOrder && (
+            <form onSubmit={handleAssignCourier} className="space-y-4 mt-4">
+              <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                <p><strong>অর্ডার:</strong> {courierDialogOrder.order_number}</p>
+                <p><strong>গ্রাহক:</strong> {courierDialogOrder.customer_name}</p>
+                <p><strong>ঠিকানা:</strong> {courierDialogOrder.shipping_address}, {courierDialogOrder.city}</p>
+              </div>
+
+              <div>
+                <Label>কুরিয়ার সার্ভিস</Label>
+                <Select
+                  value={courierFormData.courier_name}
+                  onValueChange={(value) => setCourierFormData((p) => ({ ...p, courier_name: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="কুরিয়ার সিলেক্ট করুন" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courierServices?.map((courier) => (
+                      <SelectItem key={courier.id} value={courier.name}>
+                        <div className="flex items-center gap-2">
+                          <span>{courier.name}</span>
+                          {courier.api_key && (
+                            <span className="text-xs text-green-600">(API কানেক্টেড)</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>ট্র্যাকিং নম্বর (ঐচ্ছিক)</Label>
+                <Input
+                  value={courierFormData.tracking_number}
+                  onChange={(e) => setCourierFormData((p) => ({ ...p, tracking_number: e.target.value }))}
+                  placeholder="কুরিয়ার থেকে পাওয়া ট্র্যাকিং নম্বর"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setCourierDialogOrder(null)}>
+                  বাতিল
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={!courierFormData.courier_name || assignCourierMutation.isPending}
+                  className="btn-primary"
+                >
+                  {assignCourierMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  অ্যাসাইন করুন
+                </Button>
+              </div>
+            </form>
           )}
         </DialogContent>
       </Dialog>
