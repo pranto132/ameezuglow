@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Search, Eye, Loader2, FileText, Printer, Truck } from "lucide-react";
+import { Search, Eye, Loader2, FileText, Printer, Truck, Trash2, CheckSquare } from "lucide-react";
 import { Invoice } from "@/components/admin/Invoice";
 import { useReactToPrint } from "react-to-print";
 
@@ -33,6 +35,9 @@ const AdminOrders = () => {
     courier_name: "",
     tracking_number: "",
   });
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [bulkActionOpen, setBulkActionOpen] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<string>("");
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -167,6 +172,77 @@ const AdminOrders = () => {
     },
   });
 
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      // First delete order items
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+      if (itemsError) throw itemsError;
+      
+      // Then delete the order
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast.success("অর্ডার ডিলিট করা হয়েছে");
+    },
+    onError: () => {
+      toast.error("অর্ডার ডিলিট করতে সমস্যা হয়েছে");
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (orderIds: string[]) => {
+      // Delete order items first
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .in("order_id", orderIds);
+      if (itemsError) throw itemsError;
+      
+      // Then delete orders
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .in("id", orderIds);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      setSelectedOrders([]);
+      toast.success(`${selectedOrders.length}টি অর্ডার ডিলিট করা হয়েছে`);
+    },
+    onError: () => {
+      toast.error("অর্ডার ডিলিট করতে সমস্যা হয়েছে");
+    },
+  });
+
+  const bulkStatusMutation = useMutation({
+    mutationFn: async ({ orderIds, status }: { orderIds: string[]; status: string }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ order_status: status })
+        .in("id", orderIds);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      setSelectedOrders([]);
+      setBulkActionOpen(false);
+      setBulkStatus("");
+      toast.success(`${selectedOrders.length}টি অর্ডারের স্ট্যাটাস আপডেট হয়েছে`);
+    },
+    onError: () => {
+      toast.error("স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে");
+    },
+  });
+
   const handleOpenCourierDialog = (order: any) => {
     setCourierDialogOrder(order);
     setCourierFormData({
@@ -183,6 +259,27 @@ const AdminOrders = () => {
       courier_name: courierFormData.courier_name,
       tracking_number: courierFormData.tracking_number,
     });
+  };
+
+  const toggleSelectOrder = (orderId: string) => {
+    setSelectedOrders((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (filteredOrders && selectedOrders.length === filteredOrders.length) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(filteredOrders?.map((o) => o.id) || []);
+    }
+  };
+
+  const handleBulkStatusUpdate = () => {
+    if (!bulkStatus || selectedOrders.length === 0) return;
+    bulkStatusMutation.mutate({ orderIds: selectedOrders, status: bulkStatus });
   };
 
   const filteredOrders = orders?.filter((order) => {
@@ -235,6 +332,95 @@ const AdminOrders = () => {
         </Select>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedOrders.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-4 p-4 bg-primary/10 rounded-lg border border-primary/20"
+        >
+          <div className="flex items-center gap-2">
+            <CheckSquare className="w-5 h-5 text-primary" />
+            <span className="font-medium">{selectedOrders.length}টি অর্ডার সিলেক্টেড</span>
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Bulk Status Update */}
+            <Dialog open={bulkActionOpen} onOpenChange={setBulkActionOpen}>
+              <Button variant="outline" size="sm" onClick={() => setBulkActionOpen(true)}>
+                স্ট্যাটাস পরিবর্তন
+              </Button>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>বাল্ক স্ট্যাটাস আপডেট</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedOrders.length}টি অর্ডারের স্ট্যাটাস পরিবর্তন হবে
+                  </p>
+                  <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="নতুন স্ট্যাটাস সিলেক্ট করুন" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setBulkActionOpen(false)}>
+                      বাতিল
+                    </Button>
+                    <Button
+                      onClick={handleBulkStatusUpdate}
+                      disabled={!bulkStatus || bulkStatusMutation.isPending}
+                    >
+                      {bulkStatusMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      আপডেট করুন
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Bulk Delete */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  ডিলিট
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>অর্ডার ডিলিট করুন?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    আপনি কি নিশ্চিত যে আপনি {selectedOrders.length}টি অর্ডার ডিলিট করতে চান?
+                    এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>বাতিল</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => bulkDeleteMutation.mutate(selectedOrders)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {bulkDeleteMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    ডিলিট করুন
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Button variant="ghost" size="sm" onClick={() => setSelectedOrders([])}>
+              বাতিল করুন
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Table */}
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {ordersError ? (
@@ -255,6 +441,12 @@ const AdminOrders = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={filteredOrders && filteredOrders.length > 0 && selectedOrders.length === filteredOrders.length}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>অর্ডার নম্বর</TableHead>
                 <TableHead>গ্রাহক</TableHead>
                 <TableHead>মোট</TableHead>
@@ -267,7 +459,13 @@ const AdminOrders = () => {
             </TableHeader>
             <TableBody>
               {filteredOrders?.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow key={order.id} className={selectedOrders.includes(order.id) ? "bg-primary/5" : ""}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedOrders.includes(order.id)}
+                      onCheckedChange={() => toggleSelectOrder(order.id)}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{order.order_number}</TableCell>
                   <TableCell>
                     <div>
@@ -329,6 +527,31 @@ const AdminOrders = () => {
                       <Button variant="ghost" size="icon" onClick={() => setInvoiceOrder(order)} title="ইনভয়েস">
                         <FileText className="w-4 h-4" />
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" title="ডিলিট">
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>অর্ডার ডিলিট করুন?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              আপনি কি নিশ্চিত যে আপনি অর্ডার #{order.order_number} ডিলিট করতে চান?
+                              এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteOrderMutation.mutate(order.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              ডিলিট করুন
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>
