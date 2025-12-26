@@ -17,8 +17,7 @@ const loginSchema = z.object({
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, isLoading: authLoading } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { signIn, isLoading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -32,32 +31,18 @@ const AdminLogin = () => {
     try {
       const validated = loginSchema.parse(formData);
       
-      if (isSignUp) {
-        const { error } = await signUp(validated.email, validated.password);
-        if (error) {
-          if (error.message.includes("already registered")) {
-            toast.error("এই ইমেইল দিয়ে আগে থেকে অ্যাকাউন্ট আছে");
-          } else {
-            toast.error(error.message);
-          }
-        } else {
-          toast.success("অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করুন।");
-          setIsSignUp(false);
-        }
+      const { error } = await signIn(validated.email, validated.password);
+      if (error) {
+        toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
       } else {
-        const { error } = await signIn(validated.email, validated.password);
-        if (error) {
-          toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
-        } else {
-          // Ensure the first-ever user can bootstrap admin access (only works if no admin exists)
-          const { error: bootstrapError } = await supabase.rpc("bootstrap_admin");
-          if (bootstrapError) {
-            console.log("bootstrap_admin skipped/failed:", bootstrapError.message);
-          }
-
-          toast.success("লগইন সফল!");
-          navigate("/admin");
+        // Ensure the first-ever user can bootstrap admin access (only works if no admin exists)
+        const { error: bootstrapError } = await supabase.rpc("bootstrap_admin");
+        if (bootstrapError) {
+          console.log("bootstrap_admin skipped/failed:", bootstrapError.message);
         }
+
+        toast.success("লগইন সফল!");
+        navigate("/admin");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -95,7 +80,7 @@ const AdminLogin = () => {
               Ameezuglow
             </h1>
             <p className="text-muted-foreground">
-              {isSignUp ? "অ্যাডমিন অ্যাকাউন্ট তৈরি করুন" : "অ্যাডমিন প্যানেলে লগইন করুন"}
+              অ্যাডমিন প্যানেলে লগইন করুন
             </p>
           </div>
 
@@ -145,22 +130,11 @@ const AdminLogin = () => {
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   অপেক্ষা করুন...
                 </>
-              ) : isSignUp ? (
-                "অ্যাকাউন্ট তৈরি করুন"
               ) : (
                 "লগইন করুন"
               )}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-primary hover:underline"
-            >
-              {isSignUp ? "আগে থেকে অ্যাকাউন্ট আছে? লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন"}
-            </button>
-          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
