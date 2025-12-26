@@ -30,14 +30,16 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Shield, Loader2, Trash2, KeyRound } from "lucide-react";
+import { Users, UserPlus, Shield, Loader2, Trash2, KeyRound, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 
-interface UserRole {
+interface UserWithRole {
   id: string;
-  user_id: string;
-  role: "admin" | "staff";
-  created_at: string | null;
+  email: string;
+  name: string;
+  role: "admin" | "staff" | null;
+  role_id: string | null;
+  created_at: string;
 }
 
 const AdminUsers = () => {
@@ -47,29 +49,28 @@ const AdminUsers = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [role, setRole] = useState<"admin" | "staff">("staff");
 
-  // Fetch all users with roles
-  const { data: userRoles, isLoading } = useQuery({
-    queryKey: ["admin-user-roles"],
+  // Fetch all users with roles via edge function
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["admin-users-with-roles"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as UserRole[];
+      const response = await supabase.functions.invoke("get-users");
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data.users as UserWithRole[];
     },
   });
 
   // Create user mutation
   const createUserMutation = useMutation({
-    mutationFn: async ({ email, password, role }: { email: string; password: string; role: string }) => {
+    mutationFn: async ({ name, email, password, role }: { name: string; email: string; password: string; role: string }) => {
       const response = await supabase.functions.invoke("create-user", {
-        body: { email, password, role },
+        body: { name, email, password, role },
       });
 
       if (response.error) {
@@ -83,9 +84,10 @@ const AdminUsers = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-user-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
       toast({ title: "সফল!", description: "ইউজার তৈরি হয়েছে" });
       setIsCreateOpen(false);
+      setName("");
       setEmail("");
       setPassword("");
       setRole("staff");
@@ -99,6 +101,28 @@ const AdminUsers = () => {
     },
   });
 
+  // Change role mutation
+  const changeRoleMutation = useMutation({
+    mutationFn: async ({ roleId, newRole }: { roleId: string; newRole: "admin" | "staff" }) => {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole })
+        .eq("id", roleId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
+      toast({ title: "সফল!", description: "রোল পরিবর্তন হয়েছে" });
+    },
+    onError: () => {
+      toast({
+        title: "ত্রুটি",
+        description: "রোল পরিবর্তন করতে সমস্যা হয়েছে",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete role mutation
   const deleteRoleMutation = useMutation({
     mutationFn: async (roleId: string) => {
@@ -106,7 +130,7 @@ const AdminUsers = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-user-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
       toast({ title: "সফল!", description: "রোল সরানো হয়েছে" });
     },
     onError: () => {
@@ -168,7 +192,7 @@ const AdminUsers = () => {
       });
       return;
     }
-    createUserMutation.mutate({ email, password, role });
+    createUserMutation.mutate({ name, email, password, role });
   };
 
   const handleResetPassword = (e: React.FormEvent) => {
@@ -192,17 +216,25 @@ const AdminUsers = () => {
     resetPasswordMutation.mutate({ userId: selectedUserId, newPassword });
   };
 
+  const handleRoleChange = (user: UserWithRole, newRole: "admin" | "staff") => {
+    if (!user.role_id || user.role === newRole) return;
+    changeRoleMutation.mutate({ roleId: user.role_id, newRole });
+  };
+
   const openResetDialog = (userId: string) => {
     setSelectedUserId(userId);
     setNewPassword("");
     setIsResetOpen(true);
   };
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (role: string | null) => {
     if (role === "admin") {
       return <Badge className="bg-red-500/10 text-red-500">অ্যাডমিন</Badge>;
     }
-    return <Badge className="bg-blue-500/10 text-blue-500">স্টাফ</Badge>;
+    if (role === "staff") {
+      return <Badge className="bg-blue-500/10 text-blue-500">স্টাফ</Badge>;
+    }
+    return <Badge variant="secondary">কোন রোল নেই</Badge>;
   };
 
   if (isLoading) {
@@ -232,6 +264,16 @@ const AdminUsers = () => {
               <DialogTitle>নতুন ইউজার তৈরি করুন</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateUser} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">নাম</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="ইউজারের নাম"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">ইমেইল</Label>
                 <Input
@@ -292,7 +334,7 @@ const AdminUsers = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">মোট ইউজার</p>
-                <p className="text-2xl font-bold">{userRoles?.length || 0}</p>
+                <p className="text-2xl font-bold">{users?.length || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -306,7 +348,7 @@ const AdminUsers = () => {
               <div>
                 <p className="text-sm text-muted-foreground">অ্যাডমিন</p>
                 <p className="text-2xl font-bold">
-                  {userRoles?.filter((u) => u.role === "admin").length || 0}
+                  {users?.filter((u) => u.role === "admin").length || 0}
                 </p>
               </div>
             </div>
@@ -321,7 +363,7 @@ const AdminUsers = () => {
               <div>
                 <p className="text-sm text-muted-foreground">স্টাফ</p>
                 <p className="text-2xl font-bold">
-                  {userRoles?.filter((u) => u.role === "staff").length || 0}
+                  {users?.filter((u) => u.role === "staff").length || 0}
                 </p>
               </div>
             </div>
@@ -341,38 +383,62 @@ const AdminUsers = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ইউজার আইডি</TableHead>
+                <TableHead>নাম</TableHead>
+                <TableHead>ইমেইল</TableHead>
                 <TableHead>রোল</TableHead>
                 <TableHead>তৈরির তারিখ</TableHead>
                 <TableHead className="text-right">অ্যাকশন</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {userRoles?.map((userRole) => (
-                <TableRow key={userRole.id}>
-                  <TableCell className="font-mono text-sm">
-                    {userRole.user_id.slice(0, 8)}...
+              {users?.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">
+                    {user.name || "-"}
                   </TableCell>
-                  <TableCell>{getRoleBadge(userRole.role)}</TableCell>
+                  <TableCell className="text-sm">
+                    {user.email}
+                  </TableCell>
                   <TableCell>
-                    {userRole.created_at
-                      ? format(new Date(userRole.created_at), "dd/MM/yyyy HH:mm")
+                    <Select
+                      value={user.role || ""}
+                      onValueChange={(v) => handleRoleChange(user, v as "admin" | "staff")}
+                      disabled={user.id === session?.user?.id || changeRoleMutation.isPending}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue>
+                          {getRoleBadge(user.role)}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="staff">
+                          <Badge className="bg-blue-500/10 text-blue-500">স্টাফ</Badge>
+                        </SelectItem>
+                        <SelectItem value="admin">
+                          <Badge className="bg-red-500/10 text-red-500">অ্যাডমিন</Badge>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    {user.created_at
+                      ? format(new Date(user.created_at), "dd/MM/yyyy HH:mm")
                       : "-"}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => openResetDialog(userRole.user_id)}
+                      onClick={() => openResetDialog(user.id)}
                       title="পাসওয়ার্ড রিসেট"
                     >
                       <KeyRound className="w-4 h-4 text-amber-500" />
                     </Button>
-                    {userRole.user_id !== session?.user?.id && (
+                    {user.id !== session?.user?.id && user.role_id && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => deleteRoleMutation.mutate(userRole.id)}
+                        onClick={() => deleteRoleMutation.mutate(user.role_id!)}
                         disabled={deleteRoleMutation.isPending}
                         title="ডিলিট"
                       >
@@ -382,9 +448,9 @@ const AdminUsers = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {(!userRoles || userRoles.length === 0) && (
+              {(!users || users.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     কোন ইউজার পাওয়া যায়নি
                   </TableCell>
                 </TableRow>
