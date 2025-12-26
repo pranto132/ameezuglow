@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Save, Globe, Phone, MapPin, Share2, Loader2 } from "lucide-react";
+import { Settings, Save, Globe, Phone, MapPin, Share2, Loader2, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 interface SiteSetting {
   id: string;
@@ -223,24 +224,52 @@ const AdminSettings = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>লোগো URL</Label>
-                  <Input
-                    value={settings.logo_url}
-                    onChange={(e) => updateSetting("logo_url", e.target.value)}
-                    placeholder="https://example.com/logo.png"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>ফেভিকন URL</Label>
-                  <Input
-                    value={settings.favicon_url}
-                    onChange={(e) => updateSetting("favicon_url", e.target.value)}
-                    placeholder="https://example.com/favicon.ico"
-                  />
-                </div>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Image className="w-5 h-5" />
+                    লোগো ও ফেভিকন
+                  </CardTitle>
+                  <CardDescription>ওয়েবসাইটের লোগো এবং ফেভিকন আপলোড করুন</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <ImageUpload
+                      value={settings.logo_url}
+                      onChange={(url) => updateSetting("logo_url", url)}
+                      label="সাইট লোগো"
+                      folder="branding"
+                      aspectRatio="3/1"
+                    />
+                    <ImageUpload
+                      value={settings.favicon_url}
+                      onChange={(url) => updateSetting("favicon_url", url)}
+                      label="ফেভিকন"
+                      folder="branding"
+                      aspectRatio="1/1"
+                    />
+                  </div>
+                  {(settings.logo_url || settings.favicon_url) && (
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">প্রিভিউ:</p>
+                      <div className="flex items-center gap-4">
+                        {settings.favicon_url && (
+                          <div className="flex items-center gap-2">
+                            <img src={settings.favicon_url} alt="Favicon" className="w-6 h-6 object-contain" />
+                            <span className="text-sm text-muted-foreground">ফেভিকন</span>
+                          </div>
+                        )}
+                        {settings.logo_url && (
+                          <div className="flex items-center gap-2">
+                            <img src={settings.logo_url} alt="Logo" className="h-8 object-contain" />
+                            <span className="text-sm text-muted-foreground">লোগো</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               <div className="space-y-2">
                 <Label>ফুটার টেক্সট (EN)</Label>
