@@ -1,102 +1,286 @@
-import { Link } from "react-router-dom";
-import { ShoppingBag, Heart, Menu, X, Search } from "lucide-react";
-import { useState } from "react";
-import { useCartStore } from "@/lib/store";
+import { Link, useLocation } from "react-router-dom";
+import { ShoppingBag, Heart, Menu, X, Search, User, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useCartStore, useWishlistStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
   const itemCount = useCartStore((state) => state.getItemCount());
+  const wishlistCount = useWishlistStore((state) => state.items.length);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location]);
 
   const navLinks = [
     { href: "/", label: "হোম" },
     { href: "/shop", label: "শপ" },
-    { href: "/categories", label: "ক্যাটাগরি" },
-    { href: "/about", label: "আমাদের সম্পর্কে" },
-    { href: "/contact", label: "যোগাযোগ" },
+  ];
+
+  const categoryLinks = [
+    { href: "/shop?category=skincare", label: "স্কিনকেয়ার" },
+    { href: "/shop?category=makeup", label: "মেকআপ" },
+    { href: "/shop?category=lip-care", label: "লিপ কেয়ার" },
+    { href: "/shop?category=hair-care", label: "হেয়ার কেয়ার" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 glass border-b border-border/50">
-      <div className="container mx-auto container-padding">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <span className="font-display text-2xl md:text-3xl font-bold text-primary">
-              Ameezuglow
-            </span>
-          </Link>
+    <>
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? "bg-background/95 backdrop-blur-xl shadow-soft border-b border-border/50"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="container mx-auto container-padding">
+          {/* Top Bar */}
+          <div className="hidden lg:flex items-center justify-between py-2 text-xs text-muted-foreground border-b border-border/30">
+            <span>🎁 ৳২০০০+ অর্ডারে ফ্রি ডেলিভারি</span>
+            <div className="flex items-center gap-4">
+              <Link to="/about" className="hover:text-primary transition-colors">আমাদের সম্পর্কে</Link>
+              <Link to="/contact" className="hover:text-primary transition-colors">যোগাযোগ</Link>
+              <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
+            </div>
+          </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                className="text-foreground/80 hover:text-primary transition-colors font-medium"
+          {/* Main Nav */}
+          <div className="flex items-center justify-between h-16 lg:h-20">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 group">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center"
               >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-muted rounded-full transition-colors hidden md:flex">
-              <Search className="w-5 h-5 text-foreground/70" />
-            </button>
-            <Link to="/wishlist" className="p-2 hover:bg-muted rounded-full transition-colors relative">
-              <Heart className="w-5 h-5 text-foreground/70" />
-            </Link>
-            <Link to="/cart" className="p-2 hover:bg-muted rounded-full transition-colors relative">
-              <ShoppingBag className="w-5 h-5 text-foreground/70" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
-                  {itemCount}
+                <span className="font-display text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
+                  Ameezuglow
                 </span>
-              )}
+              </motion.div>
             </Link>
-            <button
-              className="md:hidden p-2 hover:bg-muted rounded-full transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                    location.pathname === link.href
+                      ? "text-primary bg-primary/5"
+                      : "text-foreground/80 hover:text-primary hover:bg-muted/50"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              
+              {/* Categories Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 px-4 py-2 rounded-lg font-medium text-foreground/80 hover:text-primary hover:bg-muted/50 transition-all duration-200">
+                    ক্যাটাগরি
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-48">
+                  {categoryLinks.map((link) => (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link to={link.href} className="cursor-pointer">
+                        {link.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Link
+                to="/shop?offers=true"
+                className="px-4 py-2 rounded-lg font-medium text-primary hover:bg-primary/5 transition-all duration-200"
+              >
+                🔥 অফার
+              </Link>
+            </nav>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1 md:gap-2">
+              {/* Search Toggle */}
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="p-2.5 hover:bg-muted rounded-xl transition-colors"
+              >
+                <Search className="w-5 h-5 text-foreground/70" />
+              </motion.button>
+
+              {/* Wishlist */}
+              <Link
+                to="/wishlist"
+                className="p-2.5 hover:bg-muted rounded-xl transition-colors relative"
+              >
+                <Heart className="w-5 h-5 text-foreground/70" />
+                {wishlistCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold"
+                  >
+                    {wishlistCount}
+                  </motion.span>
+                )}
+              </Link>
+
+              {/* Cart */}
+              <Link
+                to="/cart"
+                className="p-2.5 hover:bg-muted rounded-xl transition-colors relative"
+              >
+                <ShoppingBag className="w-5 h-5 text-foreground/70" />
+                {itemCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold"
+                  >
+                    {itemCount}
+                  </motion.span>
+                )}
+              </Link>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                className="lg:hidden p-2.5 hover:bg-muted rounded-xl transition-colors"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Search Bar */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-t border-border/50 bg-background"
+            >
+              <div className="container mx-auto container-padding py-4">
+                <div className="relative max-w-2xl mx-auto">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    placeholder="আপনার পছন্দের প্রোডাক্ট খুঁজুন..."
+                    className="pl-12 h-12 text-base rounded-xl border-border/50 focus:border-primary"
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 btn-primary"
+                  >
+                    খুঁজুন
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Mobile Menu */}
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.nav
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-border/50 py-4"
+              className="lg:hidden border-t border-border/50 bg-background"
             >
-              <div className="flex flex-col gap-3">
+              <nav className="container mx-auto container-padding py-4 space-y-1">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     to={link.href}
-                    className="text-foreground/80 hover:text-primary transition-colors font-medium py-2"
-                    onClick={() => setIsMenuOpen(false)}
+                    className={`block py-3 px-4 rounded-xl font-medium transition-colors ${
+                      location.pathname === link.href
+                        ? "text-primary bg-primary/5"
+                        : "text-foreground/80 hover:bg-muted"
+                    }`}
                   >
                     {link.label}
                   </Link>
                 ))}
+                
+                <div className="py-2 px-4">
+                  <p className="text-sm text-muted-foreground mb-2">ক্যাটাগরি</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {categoryLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        to={link.href}
+                        className="py-2 px-3 text-sm rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
                 <Link
-                  to="/admin"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm py-2 border-t border-border/50 mt-2 pt-4"
-                  onClick={() => setIsMenuOpen(false)}
+                  to="/shop?offers=true"
+                  className="block py-3 px-4 rounded-xl font-medium text-primary bg-primary/5"
                 >
-                  Admin Panel
+                  🔥 অফার দেখুন
                 </Link>
-              </div>
-            </motion.nav>
+
+                <div className="pt-4 mt-4 border-t border-border/50 flex gap-2">
+                  <Link
+                    to="/about"
+                    className="flex-1 py-2 text-center text-sm text-muted-foreground hover:text-primary"
+                  >
+                    আমাদের সম্পর্কে
+                  </Link>
+                  <Link
+                    to="/contact"
+                    className="flex-1 py-2 text-center text-sm text-muted-foreground hover:text-primary"
+                  >
+                    যোগাযোগ
+                  </Link>
+                  <Link
+                    to="/admin"
+                    className="flex-1 py-2 text-center text-sm text-muted-foreground hover:text-primary"
+                  >
+                    Admin
+                  </Link>
+                </div>
+              </nav>
+            </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </header>
+      </header>
+    </>
   );
 };
