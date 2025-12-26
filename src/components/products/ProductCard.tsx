@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Heart } from "lucide-react";
+import { ShoppingBag, Heart, Eye } from "lucide-react";
 import { useCartStore, useWishlistStore } from "@/lib/store";
 import { toast } from "sonner";
 
@@ -27,6 +27,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     addItem({
       id: product.id,
       name: product.name,
@@ -40,6 +41,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (inWishlist) {
       removeFromWishlist(product.id);
       toast.info("উইশলিস্ট থেকে সরানো হয়েছে");
@@ -58,37 +60,72 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
+      transition={{ delay: index * 0.05 }}
     >
       <Link
         to={`/product/${product.slug}`}
-        className="group block bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300"
+        className="group block bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-card transition-all duration-300"
       >
-        {/* Image */}
-        <div className="relative aspect-square bg-muted overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blush/30 to-nude/30 flex items-center justify-center">
-            <span className="text-4xl">💄</span>
+        {/* Image Container */}
+        <div className="relative aspect-square bg-gradient-to-br from-blush/20 to-nude/20 overflow-hidden">
+          {/* Placeholder Image */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-5xl group-hover:scale-110 transition-transform duration-300">💄</span>
           </div>
+
+          {/* Discount Badge */}
           {discountPercent > 0 && (
-            <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-full">
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 rounded-full shadow-sm"
+            >
               -{discountPercent}%
-            </span>
+            </motion.span>
           )}
-          <button
-            onClick={handleWishlist}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
-              inWishlist ? "bg-primary text-primary-foreground" : "bg-card/80 hover:bg-card"
-            }`}
-          >
-            <Heart className={`w-4 h-4 ${inWishlist ? "fill-current" : ""}`} />
-          </button>
+
+          {/* Action Buttons */}
+          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleWishlist}
+              className={`p-2.5 rounded-full shadow-md transition-all ${
+                inWishlist 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-card/90 backdrop-blur-sm hover:bg-card"
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${inWishlist ? "fill-current" : ""}`} />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2.5 rounded-full bg-card/90 backdrop-blur-sm hover:bg-card shadow-md"
+            >
+              <Eye className="w-4 h-4" />
+            </motion.button>
+          </div>
+
+          {/* Quick Add Overlay */}
+          <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-foreground/60 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+            <Button
+              onClick={handleAddToCart}
+              size="sm"
+              className="w-full bg-white text-foreground hover:bg-white/90 font-medium"
+            >
+              <ShoppingBag className="w-4 h-4 mr-2" />
+              কার্টে যুক্ত করুন
+            </Button>
+          </div>
         </div>
 
-        {/* Info */}
+        {/* Product Info */}
         <div className="p-4 space-y-2">
-          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug min-h-[2.5rem]">
             {product.name_bn}
           </h3>
+          
           <div className="flex items-center gap-2">
             {product.sale_price ? (
               <>
@@ -99,14 +136,6 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               <span className="text-lg font-bold text-foreground">৳{product.price}</span>
             )}
           </div>
-          <Button
-            onClick={handleAddToCart}
-            size="sm"
-            className="w-full btn-primary mt-2"
-          >
-            <ShoppingBag className="w-4 h-4 mr-2" />
-            কার্টে যুক্ত করুন
-          </Button>
         </div>
       </Link>
     </motion.div>
