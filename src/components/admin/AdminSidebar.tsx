@@ -25,6 +25,7 @@ import {
   LogOut,
   Users,
   Image,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -35,6 +36,7 @@ const menuItems = [
   { title: "ক্যাটাগরি", url: "/admin/categories", icon: Tag },
   { title: "কুপন", url: "/admin/coupons", icon: Percent },
   { title: "কাস্টমার", url: "/admin/customers", icon: Users },
+  { title: "ইউজার ম্যানেজমেন্ট", url: "/admin/users", icon: Shield },
 ];
 
 const settingsItems = [
