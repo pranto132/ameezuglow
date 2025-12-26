@@ -52,6 +52,7 @@ export const Navbar = () => {
   const navLinks = [
     { href: "/", label: "হোম" },
     { href: "/shop", label: "শপ" },
+    { href: "/track-order", label: "ট্র্যাক অর্ডার" },
   ];
 
   const categoryLinks = [

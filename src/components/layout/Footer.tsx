@@ -125,6 +125,14 @@ export const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
+                  to="/track-order"
+                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  অর্ডার ট্র্যাক করুন
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/privacy"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
