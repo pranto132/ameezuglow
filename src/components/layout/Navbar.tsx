@@ -177,39 +177,41 @@ export const Navbar = () => {
                 )}
               </Link>
 
-              {/* User Account */}
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-2.5 hover:bg-muted rounded-xl transition-colors relative">
-                      <User className="w-5 h-5 text-primary" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem className="text-muted-foreground text-sm" disabled>
-                      {user.email}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/orders" className="cursor-pointer">
-                        আমার অর্ডার
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      লগআউট
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Link
-                  to="/auth"
-                  className="p-2.5 hover:bg-muted rounded-xl transition-colors"
-                >
-                  <User className="w-5 h-5 text-foreground/70" />
-                </Link>
-              )}
+              {/* User Account - Desktop Only */}
+              <div className="hidden lg:block">
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-2.5 hover:bg-muted rounded-xl transition-colors relative">
+                        <User className="w-5 h-5 text-primary" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-card">
+                      <DropdownMenuItem className="text-muted-foreground text-sm" disabled>
+                        {user.email}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/orders" className="cursor-pointer">
+                          আমার অর্ডার
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        লগআউট
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link
+                    to="/auth"
+                    className="p-2.5 hover:bg-muted rounded-xl transition-colors"
+                  >
+                    <User className="w-5 h-5 text-foreground/70" />
+                  </Link>
+                )}
+              </div>
 
               {/* Mobile Menu Toggle */}
               <button
