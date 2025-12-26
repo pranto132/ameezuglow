@@ -95,11 +95,13 @@ const Checkout = () => {
 
       // Generate order number
       const orderNumber = `AMZ-${Date.now().toString(36).toUpperCase()}`;
+      const orderId = crypto.randomUUID();
 
-      // Create order
-      const { data: order, error: orderError } = await supabase
+      // Create order (avoid returning row data to keep orders non-readable to public)
+      const { error: orderError } = await supabase
         .from("orders")
         .insert({
+          id: orderId,
           order_number: orderNumber,
           customer_name: validated.customer_name,
           customer_phone: validated.customer_phone,
@@ -115,15 +117,13 @@ const Checkout = () => {
           transaction_id: validated.transaction_id || null,
           payment_status: validated.payment_method === "cod" ? "pending" : "awaiting_verification",
           order_status: "pending",
-        })
-        .select()
-        .single();
+        });
 
       if (orderError) throw orderError;
 
       // Create order items
       const orderItems = items.map((item) => ({
-        order_id: order.id,
+        order_id: orderId,
         product_id: item.id,
         product_name: item.name_bn,
         quantity: item.quantity,
