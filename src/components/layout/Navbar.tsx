@@ -26,9 +26,15 @@ export const Navbar = () => {
   const wishlistCount = useWishlistStore((state) => state.items.length);
 
   const handleSignOut = async () => {
-    await signOut();
-    toast.success("লগআউট সফল!");
-    navigate("/");
+    try {
+      setIsMenuOpen(false); // Close menu first
+      await signOut();
+      toast.success("লগআউট সফল!");
+      navigate("/");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast.error("লগআউট করতে সমস্যা হয়েছে");
+    }
   };
 
   useEffect(() => {
