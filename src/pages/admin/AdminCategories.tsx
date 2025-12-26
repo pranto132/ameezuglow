@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 const AdminCategories = () => {
   const queryClient = useQueryClient();
@@ -21,6 +22,7 @@ const AdminCategories = () => {
     slug: "",
     sort_order: "0",
     is_active: true,
+    image_url: "",
   });
 
   const { data: categories, isLoading } = useQuery({
@@ -43,6 +45,7 @@ const AdminCategories = () => {
         slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
         sort_order: parseInt(data.sort_order),
         is_active: data.is_active,
+        image_url: data.image_url || null,
       };
       if (editingCategory) {
         const { error } = await supabase.from("categories").update(payload).eq("id", editingCategory.id);
@@ -73,7 +76,7 @@ const AdminCategories = () => {
   });
 
   const resetForm = () => {
-    setFormData({ name: "", name_bn: "", slug: "", sort_order: "0", is_active: true });
+    setFormData({ name: "", name_bn: "", slug: "", sort_order: "0", is_active: true, image_url: "" });
     setEditingCategory(null);
   };
 
@@ -85,6 +88,7 @@ const AdminCategories = () => {
       slug: category.slug,
       sort_order: category.sort_order?.toString() || "0",
       is_active: category.is_active,
+      image_url: category.image_url || "",
     });
     setIsDialogOpen(true);
   };
@@ -113,6 +117,13 @@ const AdminCategories = () => {
                 <div><Label>স্লাগ</Label><Input value={formData.slug} onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))} /></div>
                 <div><Label>সর্ট অর্ডার</Label><Input type="number" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: e.target.value }))} /></div>
               </div>
+              <ImageUpload
+                value={formData.image_url}
+                onChange={(url) => setFormData((p) => ({ ...p, image_url: url }))}
+                label="ক্যাটাগরি ইমেজ"
+                folder="categories"
+                aspectRatio="1/1"
+              />
               <div className="flex items-center gap-2">
                 <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))} />
                 <Label>অ্যাক্টিভ</Label>

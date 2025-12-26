@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Image, GripVertical, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 interface Banner {
   id: string;
@@ -235,14 +236,13 @@ const AdminBanners = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>ইমেজ URL</Label>
-                <Input
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://example.com/banner.jpg"
-                />
-              </div>
+              <ImageUpload
+                value={formData.image_url}
+                onChange={(url) => setFormData({ ...formData, image_url: url })}
+                label="ব্যানার ইমেজ"
+                folder="banners"
+                aspectRatio="16/9"
+              />
 
               <div className="space-y-2">
                 <Label>লিংক URL</Label>

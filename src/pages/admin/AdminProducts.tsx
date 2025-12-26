@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
+import MultiImageUpload from "@/components/admin/MultiImageUpload";
 
 interface Product {
   id: string;
@@ -25,6 +26,7 @@ interface Product {
   is_featured: boolean;
   category_id: string | null;
   description_bn: string | null;
+  images: string[] | null;
 }
 
 const AdminProducts = () => {
@@ -43,6 +45,7 @@ const AdminProducts = () => {
     is_featured: false,
     category_id: "",
     description_bn: "",
+    images: [] as string[],
   });
 
   const { data: products, isLoading } = useQuery({
@@ -82,6 +85,7 @@ const AdminProducts = () => {
         is_featured: data.is_featured,
         category_id: data.category_id || null,
         description_bn: data.description_bn || null,
+        images: data.images.length > 0 ? data.images : null,
       };
 
       if (editingProduct) {
@@ -129,6 +133,7 @@ const AdminProducts = () => {
       is_featured: false,
       category_id: "",
       description_bn: "",
+      images: [],
     });
     setEditingProduct(null);
   };
@@ -146,6 +151,7 @@ const AdminProducts = () => {
       is_featured: product.is_featured,
       category_id: product.category_id || "",
       description_bn: product.description_bn || "",
+      images: product.images || [],
     });
     setIsDialogOpen(true);
   };
@@ -255,6 +261,13 @@ const AdminProducts = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <MultiImageUpload
+                value={formData.images}
+                onChange={(urls) => setFormData((p) => ({ ...p, images: urls }))}
+                label="প্রোডাক্ট ইমেজ"
+                folder="products"
+                maxImages={10}
+              />
               <div>
                 <Label>বিবরণ (বাংলা)</Label>
                 <Textarea
