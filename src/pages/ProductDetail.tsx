@@ -5,12 +5,14 @@ import { Layout } from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useCartStore, useWishlistStore } from "@/lib/store";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { ShoppingBag, Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { t } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
@@ -67,9 +69,9 @@ const ProductDetail = () => {
       <Layout>
         <div className="container mx-auto container-padding section-padding text-center">
           <div className="text-6xl mb-4">😔</div>
-          <h1 className="text-2xl font-bold text-foreground mb-4">প্রোডাক্ট পাওয়া যায়নি</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-4">{t("প্রোডাক্ট পাওয়া যায়নি", "Product Not Found")}</h1>
           <Button asChild>
-            <Link to="/shop">শপে ফিরে যান</Link>
+            <Link to="/shop">{t("শপে ফিরে যান", "Back to Shop")}</Link>
           </Button>
         </div>
       </Layout>
@@ -92,16 +94,16 @@ const ProductDetail = () => {
         image: product.images?.[0],
       });
     }
-    toast.success(`${quantity}টি প্রোডাক্ট কার্টে যুক্ত হয়েছে!`);
+    toast.success(t(`${quantity}টি প্রোডাক্ট কার্টে যুক্ত হয়েছে!`, `${quantity} item(s) added to cart!`));
   };
 
   const handleWishlist = () => {
     if (inWishlist) {
       removeFromWishlist(product.id);
-      toast.info("উইশলিস্ট থেকে সরানো হয়েছে");
+      toast.info(t("উইশলিস্ট থেকে সরানো হয়েছে", "Removed from wishlist"));
     } else {
       addToWishlist(product.id);
-      toast.success("উইশলিস্টে যুক্ত হয়েছে!");
+      toast.success(t("উইশলিস্টে যুক্ত হয়েছে!", "Added to wishlist!"));
     }
   };
 
@@ -113,19 +115,19 @@ const ProductDetail = () => {
         <div className="container mx-auto container-padding">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
-            <Link to="/" className="hover:text-primary">হোম</Link>
+            <Link to="/" className="hover:text-primary">{t("হোম", "Home")}</Link>
             <span>/</span>
-            <Link to="/shop" className="hover:text-primary">শপ</Link>
+            <Link to="/shop" className="hover:text-primary">{t("শপ", "Shop")}</Link>
             {category && (
               <>
                 <span>/</span>
                 <Link to={`/shop?category=${category.slug}`} className="hover:text-primary">
-                  {category.name_bn}
+                  {t(category.name_bn, category.name)}
                 </Link>
               </>
             )}
             <span>/</span>
-            <span className="text-foreground">{product.name_bn}</span>
+            <span className="text-foreground">{t(product.name_bn, product.name)}</span>
           </nav>
 
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
@@ -139,7 +141,7 @@ const ProductDetail = () => {
                 <span className="text-8xl">💄</span>
                 {discountPercent > 0 && (
                   <span className="absolute top-4 left-4 bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded-full">
-                    -{discountPercent}% ছাড়
+                    -{discountPercent}% {t("ছাড়", "OFF")}
                   </span>
                 )}
               </div>
@@ -156,12 +158,12 @@ const ProductDetail = () => {
                   to={`/shop?category=${category.slug}`}
                   className="inline-block text-sm text-primary font-medium"
                 >
-                  {category.name_bn}
+                  {t(category.name_bn, category.name)}
                 </Link>
               )}
 
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                {product.name_bn}
+                {t(product.name_bn, product.name)}
               </h1>
 
               {/* Reviews Summary */}
@@ -180,7 +182,7 @@ const ProductDetail = () => {
                     ))}
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    ({reviews.length} টি রিভিউ)
+                    ({reviews.length} {t("টি রিভিউ", "reviews")})
                   </span>
                 </div>
               )}
@@ -201,12 +203,12 @@ const ProductDetail = () => {
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
                 product.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
               }`}>
-                {product.stock > 0 ? `স্টকে আছে (${product.stock}টি)` : "স্টকে নেই"}
+                {product.stock > 0 ? t(`স্টকে আছে (${product.stock}টি)`, `In Stock (${product.stock})`) : t("স্টকে নেই", "Out of Stock")}
               </div>
 
               {/* Description */}
-              {product.description_bn && (
-                <p className="text-foreground/80 leading-relaxed">{product.description_bn}</p>
+              {(product.description_bn || product.description) && (
+                <p className="text-foreground/80 leading-relaxed">{t(product.description_bn || "", product.description || "")}</p>
               )}
 
               {/* Quantity & Add to Cart */}
@@ -234,7 +236,7 @@ const ProductDetail = () => {
                   size="lg"
                 >
                   <ShoppingBag className="w-5 h-5 mr-2" />
-                  কার্টে যুক্ত করুন
+                  {t("কার্টে যুক্ত করুন", "Add to Cart")}
                 </Button>
 
                 <Button
@@ -251,15 +253,15 @@ const ProductDetail = () => {
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
                 <div className="text-center">
                   <Truck className="w-6 h-6 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">দ্রুত ডেলিভারি</p>
+                  <p className="text-xs text-muted-foreground">{t("দ্রুত ডেলিভারি", "Fast Delivery")}</p>
                 </div>
                 <div className="text-center">
                   <Shield className="w-6 h-6 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">১০০% অরিজিনাল</p>
+                  <p className="text-xs text-muted-foreground">{t("১০০% অরিজিনাল", "100% Original")}</p>
                 </div>
                 <div className="text-center">
                   <RotateCcw className="w-6 h-6 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">সহজ রিটার্ন</p>
+                  <p className="text-xs text-muted-foreground">{t("সহজ রিটার্ন", "Easy Returns")}</p>
                 </div>
               </div>
             </motion.div>
@@ -268,25 +270,25 @@ const ProductDetail = () => {
           {/* Product Details Tabs */}
           <div className="mt-16 space-y-8">
             {/* Ingredients */}
-            {product.ingredients_bn && (
+            {(product.ingredients_bn || product.ingredients) && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">উপাদানসমূহ</h2>
-                <p className="text-foreground/80">{product.ingredients_bn}</p>
+                <h2 className="font-display text-xl font-bold text-foreground mb-4">{t("উপাদানসমূহ", "Ingredients")}</h2>
+                <p className="text-foreground/80">{t(product.ingredients_bn || "", product.ingredients || "")}</p>
               </div>
             )}
 
             {/* How to Use */}
-            {product.how_to_use_bn && (
+            {(product.how_to_use_bn || product.how_to_use) && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">ব্যবহার পদ্ধতি</h2>
-                <p className="text-foreground/80">{product.how_to_use_bn}</p>
+                <h2 className="font-display text-xl font-bold text-foreground mb-4">{t("ব্যবহার পদ্ধতি", "How to Use")}</h2>
+                <p className="text-foreground/80">{t(product.how_to_use_bn || "", product.how_to_use || "")}</p>
               </div>
             )}
 
             {/* Reviews */}
             <div className="bg-card rounded-2xl border border-border p-6">
               <h2 className="font-display text-xl font-bold text-foreground mb-4">
-                গ্রাহকদের রিভিউ ({reviews?.length || 0})
+                {t("গ্রাহকদের রিভিউ", "Customer Reviews")} ({reviews?.length || 0})
               </h2>
               {reviews && reviews.length > 0 ? (
                 <div className="space-y-4">
@@ -312,7 +314,7 @@ const ProductDetail = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground">এই প্রোডাক্টে এখনও কোন রিভিউ নেই।</p>
+                <p className="text-muted-foreground">{t("এই প্রোডাক্টে এখনও কোন রিভিউ নেই।", "No reviews yet for this product.")}</p>
               )}
             </div>
           </div>
@@ -322,7 +324,7 @@ const ProductDetail = () => {
             <Button asChild variant="outline">
               <Link to="/shop">
                 <ChevronLeft className="w-4 h-4 mr-2" />
-                শপে ফিরে যান
+                {t("শপে ফিরে যান", "Back to Shop")}
               </Link>
             </Button>
           </div>

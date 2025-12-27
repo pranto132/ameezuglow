@@ -6,22 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Search, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Calendar, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const statusSteps = [
-  { value: "pending", label: "পেন্ডিং", icon: Clock, color: "text-orange-500" },
-  { value: "confirmed", label: "কনফার্মড", icon: CheckCircle, color: "text-blue-500" },
-  { value: "processing", label: "প্রসেসিং", icon: Package, color: "text-purple-500" },
-  { value: "shipped", label: "শিপড", icon: Truck, color: "text-indigo-500" },
-  { value: "delivered", label: "ডেলিভার্ড", icon: CheckCircle, color: "text-green-500" },
-];
-
 const TrackOrder = () => {
+  const { t } = useLanguage();
   const [orderNumber, setOrderNumber] = useState("");
   const [searchedOrderNumber, setSearchedOrderNumber] = useState("");
 
-  const { data: order, isLoading, error, refetch } = useQuery({
+  const statusSteps = [
+    { value: "pending", label: t("পেন্ডিং", "Pending"), icon: Clock, color: "text-orange-500" },
+    { value: "confirmed", label: t("কনফার্মড", "Confirmed"), icon: CheckCircle, color: "text-blue-500" },
+    { value: "processing", label: t("প্রসেসিং", "Processing"), icon: Package, color: "text-purple-500" },
+    { value: "shipped", label: t("শিপড", "Shipped"), icon: Truck, color: "text-indigo-500" },
+    { value: "delivered", label: t("ডেলিভার্ড", "Delivered"), icon: CheckCircle, color: "text-green-500" },
+  ];
+
+  const { data: order, isLoading, error } = useQuery({
     queryKey: ["track-order", searchedOrderNumber],
     queryFn: async () => {
       if (!searchedOrderNumber) return null;
@@ -80,10 +82,10 @@ const TrackOrder = () => {
               <Package className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-              অর্ডার ট্র্যাক করুন
+              {t("অর্ডার ট্র্যাক করুন", "Track Your Order")}
             </h1>
             <p className="text-muted-foreground">
-              আপনার অর্ডার নম্বর দিয়ে বর্তমান অবস্থা দেখুন
+              {t("আপনার অর্ডার নম্বর দিয়ে বর্তমান অবস্থা দেখুন", "Enter your order number to check the current status")}
             </p>
           </motion.div>
 
@@ -100,7 +102,7 @@ const TrackOrder = () => {
                 <Input
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
-                  placeholder="অর্ডার নম্বর লিখুন (যেমন: 000123)"
+                  placeholder={t("অর্ডার নম্বর লিখুন (যেমন: 000123)", "Enter order number (e.g., 000123)")}
                   className="pl-12 h-14 text-lg rounded-xl border-border/50"
                 />
               </div>
@@ -110,7 +112,7 @@ const TrackOrder = () => {
                 ) : (
                   <>
                     <Search className="w-5 h-5 mr-2" />
-                    খুঁজুন
+                    {t("খুঁজুন", "Search")}
                   </>
                 )}
               </Button>
@@ -129,20 +131,20 @@ const TrackOrder = () => {
                 <Card className="border-destructive/50 bg-destructive/5">
                   <CardContent className="py-8 text-center">
                     <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">কিছু সমস্যা হয়েছে</h3>
-                    <p className="text-muted-foreground">দয়া করে আবার চেষ্টা করুন</p>
+                    <h3 className="text-lg font-semibold mb-2">{t("কিছু সমস্যা হয়েছে", "Something went wrong")}</h3>
+                    <p className="text-muted-foreground">{t("দয়া করে আবার চেষ্টা করুন", "Please try again")}</p>
                   </CardContent>
                 </Card>
               ) : !order && !isLoading ? (
                 <Card className="border-orange-200 bg-orange-50/50 dark:border-orange-900/50 dark:bg-orange-950/20">
                   <CardContent className="py-8 text-center">
                     <Package className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">অর্ডার পাওয়া যায়নি</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t("অর্ডার পাওয়া যায়নি", "Order Not Found")}</h3>
                     <p className="text-muted-foreground mb-4">
-                      "{searchedOrderNumber}" নম্বরে কোনো অর্ডার নেই। সঠিক অর্ডার নম্বর দিয়ে আবার চেষ্টা করুন।
+                      {t(`"${searchedOrderNumber}" নম্বরে কোনো অর্ডার নেই। সঠিক অর্ডার নম্বর দিয়ে আবার চেষ্টা করুন।`, `No order found with "${searchedOrderNumber}". Please try with the correct order number.`)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      অর্ডার নম্বর আপনার অর্ডার কনফার্মেশন এসএমএস বা ইমেইলে পাবেন
+                      {t("অর্ডার নম্বর আপনার অর্ডার কনফার্মেশন এসএমএস বা ইমেইলে পাবেন", "You can find your order number in the confirmation SMS or email")}
                     </p>
                   </CardContent>
                 </Card>
@@ -153,13 +155,13 @@ const TrackOrder = () => {
                     <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 border-b">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">অর্ডার নম্বর</p>
+                          <p className="text-sm text-muted-foreground">{t("অর্ডার নম্বর", "Order Number")}</p>
                           <CardTitle className="text-2xl font-display">#{order.order_number}</CardTitle>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {new Date(order.created_at || "").toLocaleDateString("bn-BD", {
+                            {new Date(order.created_at || "").toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
@@ -173,8 +175,8 @@ const TrackOrder = () => {
                       {order.order_status === "cancelled" ? (
                         <div className="text-center py-8">
                           <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-                          <h3 className="text-xl font-semibold text-destructive mb-2">অর্ডার বাতিল করা হয়েছে</h3>
-                          <p className="text-muted-foreground">এই অর্ডারটি বাতিল করা হয়েছে</p>
+                          <h3 className="text-xl font-semibold text-destructive mb-2">{t("অর্ডার বাতিল করা হয়েছে", "Order Cancelled")}</h3>
+                          <p className="text-muted-foreground">{t("এই অর্ডারটি বাতিল করা হয়েছে", "This order has been cancelled")}</p>
                         </div>
                       ) : (
                         <div className="relative">
@@ -215,7 +217,7 @@ const TrackOrder = () => {
                                       {step.label}
                                     </p>
                                     {isCurrent && (
-                                      <p className="text-xs text-primary mt-1">বর্তমান অবস্থা</p>
+                                      <p className="text-xs text-primary mt-1">{t("বর্তমান অবস্থা", "Current Status")}</p>
                                     )}
                                   </div>
                                   {/* Mobile connector */}
@@ -242,7 +244,7 @@ const TrackOrder = () => {
                               <p className="font-medium">{order.courier_name}</p>
                               {order.tracking_number && (
                                 <p className="text-sm text-muted-foreground">
-                                  ট্র্যাকিং নম্বর: <span className="font-mono">{order.tracking_number}</span>
+                                  {t("ট্র্যাকিং নম্বর:", "Tracking Number:")} <span className="font-mono">{order.tracking_number}</span>
                                 </p>
                               )}
                             </div>
@@ -259,7 +261,7 @@ const TrackOrder = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                           <MapPin className="w-5 h-5 text-primary" />
-                          ডেলিভারি ঠিকানা
+                          {t("ডেলিভারি ঠিকানা", "Delivery Address")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-2">
@@ -280,30 +282,30 @@ const TrackOrder = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                           <Package className="w-5 h-5 text-primary" />
-                          অর্ডার সামারি
+                          {t("অর্ডার সামারি", "Order Summary")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">সাবটোটাল</span>
+                          <span className="text-muted-foreground">{t("সাবটোটাল", "Subtotal")}</span>
                           <span>৳{Number(order.subtotal).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">ডেলিভারি</span>
+                          <span className="text-muted-foreground">{t("ডেলিভারি", "Delivery")}</span>
                           <span>৳{Number(order.shipping_cost || 0).toLocaleString()}</span>
                         </div>
                         {Number(order.discount) > 0 && (
                           <div className="flex justify-between text-sm text-green-600">
-                            <span>ডিসকাউন্ট</span>
+                            <span>{t("ডিসকাউন্ট", "Discount")}</span>
                             <span>-৳{Number(order.discount).toLocaleString()}</span>
                           </div>
                         )}
                         <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                          <span>মোট</span>
+                          <span>{t("মোট", "Total")}</span>
                           <span className="text-primary">৳{Number(order.total).toLocaleString()}</span>
                         </div>
                         <div className="pt-2 text-sm">
-                          <span className="text-muted-foreground">পেমেন্ট: </span>
+                          <span className="text-muted-foreground">{t("পেমেন্ট:", "Payment:")} </span>
                           <span className="capitalize">{order.payment_method}</span>
                         </div>
                       </CardContent>
@@ -314,7 +316,7 @@ const TrackOrder = () => {
                   {orderItems && orderItems.length > 0 && (
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">অর্ডার আইটেম</CardTitle>
+                        <CardTitle className="text-lg">{t("অর্ডার আইটেম", "Order Items")}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
@@ -349,26 +351,20 @@ const TrackOrder = () => {
             >
               <Card className="bg-muted/30">
                 <CardContent className="py-8">
-                  <h3 className="font-semibold text-lg mb-4 text-center">অর্ডার নম্বর কোথায় পাবেন?</h3>
+                  <h3 className="font-semibold text-lg mb-4 text-center">{t("অর্ডার নম্বর কোথায় পাবেন?", "Where to find your order number?")}</h3>
                   <div className="space-y-3 text-sm text-muted-foreground">
                     <div className="flex items-start gap-3">
                       <ChevronRight className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p>অর্ডার সফল হলে কনফার্মেশন পেজে অর্ডার নম্বর দেখানো হয়</p>
+                      <p>{t("অর্ডার সফল হওয়ার পরে আপনার স্ক্রিনে অর্ডার নম্বর দেখানো হয়", "Order number is shown on your screen after successful order")}</p>
                     </div>
                     <div className="flex items-start gap-3">
                       <ChevronRight className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p>আপনার মোবাইলে SMS/WhatsApp এ অর্ডার নম্বর পাঠানো হয়</p>
+                      <p>{t("আমরা আপনাকে ফোনে কল করে অর্ডার কনফার্ম করব", "We will call you to confirm your order")}</p>
                     </div>
                     <div className="flex items-start gap-3">
                       <ChevronRight className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p>ইমেইল দিয়ে অর্ডার করলে ইনবক্সে কনফার্মেশন মেইল চেক করুন</p>
+                      <p>{t("ইমেইল দিয়ে অর্ডার করলে ইমেইলেও অর্ডার নম্বর পাঠানো হয়", "If you ordered with email, order number is also sent via email")}</p>
                     </div>
-                  </div>
-                  <div className="mt-6 text-center">
-                    <p className="text-sm text-muted-foreground mb-3">অর্ডার নম্বর হারিয়ে গেলে?</p>
-                    <Button asChild variant="outline">
-                      <Link to="/contact">আমাদের সাথে যোগাযোগ করুন</Link>
-                    </Button>
                   </div>
                 </CardContent>
               </Card>

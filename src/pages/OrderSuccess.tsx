@@ -2,11 +2,16 @@ import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { CheckCircle, Home, ShoppingBag, Phone } from "lucide-react";
 
 const OrderSuccess = () => {
+  const { t } = useLanguage();
+  const { getSetting } = useSiteSettings();
   const [searchParams] = useSearchParams();
   const orderNumber = searchParams.get("order");
+  const contactPhone = getSetting("contact_phone", "+880 1XXX-XXXXXX");
 
   return (
     <Layout>
@@ -27,34 +32,34 @@ const OrderSuccess = () => {
             </motion.div>
 
             <h1 className="font-display text-3xl font-bold text-foreground mb-4">
-              অর্ডার সফল হয়েছে!
+              {t("অর্ডার সফল হয়েছে!", "Order Placed Successfully!")}
             </h1>
 
             <p className="text-muted-foreground mb-6">
-              আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।
+              {t("আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।", "Your order has been successfully received. We will contact you soon.")}
             </p>
 
             {orderNumber && (
               <div className="bg-card rounded-2xl border border-border p-6 mb-6">
-                <p className="text-sm text-muted-foreground mb-1">অর্ডার নম্বর</p>
+                <p className="text-sm text-muted-foreground mb-1">{t("অর্ডার নম্বর", "Order Number")}</p>
                 <p className="text-2xl font-bold text-primary">{orderNumber}</p>
               </div>
             )}
 
             <div className="bg-muted/50 rounded-2xl p-6 mb-8 text-left">
-              <h3 className="font-semibold text-foreground mb-3">পরবর্তী ধাপ:</h3>
+              <h3 className="font-semibold text-foreground mb-3">{t("পরবর্তী ধাপ:", "Next Steps:")}</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <span className="text-primary">১.</span>
-                  আমাদের টিম আপনার অর্ডার যাচাই করবে
+                  <span className="text-primary">{t("১.", "1.")}</span>
+                  {t("আমাদের টিম আপনার অর্ডার যাচাই করবে", "Our team will verify your order")}
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-primary">২.</span>
-                  কনফার্মেশনের জন্য ফোন করা হবে
+                  <span className="text-primary">{t("২.", "2.")}</span>
+                  {t("কনফার্মেশনের জন্য ফোন করা হবে", "You will receive a confirmation call")}
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-primary">৩.</span>
-                  প্রোডাক্ট প্যাকেজিং ও ডেলিভারি শুরু হবে
+                  <span className="text-primary">{t("৩.", "3.")}</span>
+                  {t("প্রোডাক্ট প্যাকেজিং ও ডেলিভারি শুরু হবে", "Product packaging and delivery will begin")}
                 </li>
               </ul>
             </div>
@@ -63,27 +68,27 @@ const OrderSuccess = () => {
               <Button asChild className="btn-primary">
                 <Link to="/">
                   <Home className="w-4 h-4 mr-2" />
-                  হোমে ফিরে যান
+                  {t("হোমে ফিরে যান", "Back to Home")}
                 </Link>
               </Button>
               <Button asChild variant="outline">
                 <Link to="/shop">
                   <ShoppingBag className="w-4 h-4 mr-2" />
-                  আরও শপিং করুন
+                  {t("আরও শপিং করুন", "Continue Shopping")}
                 </Link>
               </Button>
             </div>
 
             <div className="mt-8 pt-6 border-t border-border">
               <p className="text-sm text-muted-foreground">
-                কোন প্রশ্ন থাকলে যোগাযোগ করুন:
+                {t("কোন প্রশ্ন থাকলে যোগাযোগ করুন:", "For any questions, contact us:")}
               </p>
               <a
-                href="tel:+8801XXXXXXXXX"
+                href={`tel:${contactPhone.replace(/\s+/g, '')}`}
                 className="inline-flex items-center gap-2 text-primary font-medium mt-2 hover:underline"
               >
                 <Phone className="w-4 h-4" />
-                +880 1XXX-XXXXXX
+                {contactPhone}
               </a>
             </div>
           </motion.div>
