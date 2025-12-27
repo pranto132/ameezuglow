@@ -10,26 +10,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCartStore } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, CheckCircle, Truck, CreditCard, Smartphone } from "lucide-react";
 import { z } from "zod";
 
-const checkoutSchema = z.object({
-  customer_name: z.string().min(2, "নাম প্রয়োজন"),
-  customer_phone: z.string().min(11, "সঠিক ফোন নম্বর দিন").max(14),
-  customer_email: z.string().email("সঠিক ইমেইল দিন").optional().or(z.literal("")),
-  shipping_address: z.string().min(10, "সম্পূর্ণ ঠিকানা দিন"),
-  city: z.string().min(2, "শহরের নাম দিন"),
-  area: z.string().optional(),
-  notes: z.string().optional(),
-  payment_method: z.string(),
-  transaction_id: z.string().optional(),
-});
-
 const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const { items, getTotal, clearCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [didSubmit, setDidSubmit] = useState(false);
@@ -39,12 +29,24 @@ const Checkout = () => {
     customer_phone: "",
     customer_email: "",
     shipping_address: "",
-    city: "ঢাকা",
+    city: language === "bn" ? "ঢাকা" : "Dhaka",
     area: "",
     notes: "",
     payment_method: "cod",
     transaction_id: "",
     delivery_area: "inside_dhaka" as "inside_dhaka" | "outside_dhaka",
+  });
+
+  const checkoutSchema = z.object({
+    customer_name: z.string().min(2, t("নাম প্রয়োজন", "Name is required")),
+    customer_phone: z.string().min(11, t("সঠিক ফোন নম্বর দিন", "Enter a valid phone number")).max(14),
+    customer_email: z.string().email(t("সঠিক ইমেইল দিন", "Enter a valid email")).optional().or(z.literal("")),
+    shipping_address: z.string().min(10, t("সম্পূর্ণ ঠিকানা দিন", "Enter complete address")),
+    city: z.string().min(2, t("শহরের নাম দিন", "Enter city name")),
+    area: z.string().optional(),
+    notes: z.string().optional(),
+    payment_method: z.string(),
+    transaction_id: z.string().optional(),
   });
 
   // Pre-fill email from logged-in user
@@ -96,24 +98,6 @@ const Checkout = () => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const createUuid = () => {
-    // Some browsers/environments don't support crypto.randomUUID()
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto && typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID();
-    }
-
-    // RFC4122 v4 using crypto.getRandomValues
-    const bytes = new Uint8Array(16);
-    crypto.getRandomValues(bytes);
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-
-    const toHex = (n: number) => n.toString(16).padStart(2, "0");
-    const hex = Array.from(bytes, toHex).join("");
-
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -154,7 +138,7 @@ const Checkout = () => {
 
       // Clear cart and redirect
       setDidSubmit(true);
-      toast.success("অর্ডার সফলভাবে সম্পন্ন হয়েছে!");
+      toast.success(t("অর্ডার সফলভাবে সম্পন্ন হয়েছে!", "Order placed successfully!"));
       navigate(`/order-success?order=${orderNumber}`);
       clearCart();
     } catch (error: any) {
@@ -172,7 +156,7 @@ const Checkout = () => {
       // Show the real backend/browser error so we can diagnose instantly
       const message = typeof error?.message === "string" ? error.message : "";
       console.error("Checkout order placement failed:", error);
-      toast.error(message ? `অর্ডার প্রসেস করতে সমস্যা হয়েছে: ${message}` : "অর্ডার প্রসেস করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      toast.error(message ? t(`অর্ডার প্রসেস করতে সমস্যা হয়েছে: ${message}`, `Error processing order: ${message}`) : t("অর্ডার প্রসেস করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।", "Error processing order. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -196,7 +180,7 @@ const Checkout = () => {
             animate={{ opacity: 1, y: 0 }}
             className="font-display text-3xl font-bold text-foreground mb-8"
           >
-            চেকআউট
+            {t("চেকআউট", "Checkout")}
           </motion.h1>
 
           <form onSubmit={handleSubmit}>
@@ -210,17 +194,17 @@ const Checkout = () => {
                   className="bg-card rounded-2xl border border-border p-6"
                 >
                   <h2 className="font-display text-xl font-bold text-foreground mb-4">
-                    আপনার তথ্য
+                    {t("আপনার তথ্য", "Your Information")}
                   </h2>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="customer_name">নাম *</Label>
+                      <Label htmlFor="customer_name">{t("নাম", "Name")} *</Label>
                       <Input
                         id="customer_name"
                         name="customer_name"
                         value={formData.customer_name}
                         onChange={handleChange}
-                        placeholder="আপনার নাম"
+                        placeholder={t("আপনার নাম", "Your name")}
                         className={errors.customer_name ? "border-destructive" : ""}
                       />
                       {errors.customer_name && (
@@ -228,7 +212,7 @@ const Checkout = () => {
                       )}
                     </div>
                     <div>
-                      <Label htmlFor="customer_phone">ফোন নম্বর *</Label>
+                      <Label htmlFor="customer_phone">{t("ফোন নম্বর", "Phone Number")} *</Label>
                       <Input
                         id="customer_phone"
                         name="customer_phone"
@@ -242,7 +226,7 @@ const Checkout = () => {
                       )}
                     </div>
                     <div className="md:col-span-2">
-                      <Label htmlFor="customer_email">ইমেইল (ঐচ্ছিক)</Label>
+                      <Label htmlFor="customer_email">{t("ইমেইল (ঐচ্ছিক)", "Email (Optional)")}</Label>
                       <Input
                         id="customer_email"
                         name="customer_email"
@@ -264,12 +248,12 @@ const Checkout = () => {
                 >
                   <h2 className="font-display text-xl font-bold text-foreground mb-4">
                     <Truck className="w-5 h-5 inline mr-2" />
-                    ডেলিভারি ঠিকানা
+                    {t("ডেলিভারি ঠিকানা", "Delivery Address")}
                   </h2>
                   <div className="space-y-4">
                     {/* Delivery Area Selector */}
                     <div>
-                      <Label className="mb-3 block">ডেলিভারি এরিয়া *</Label>
+                      <Label className="mb-3 block">{t("ডেলিভারি এরিয়া", "Delivery Area")} *</Label>
                       <RadioGroup
                         value={formData.delivery_area}
                         onValueChange={(value: "inside_dhaka" | "outside_dhaka") => 
@@ -287,10 +271,10 @@ const Checkout = () => {
                         >
                           <RadioGroupItem value="inside_dhaka" id="inside_dhaka" />
                           <div className="flex-1">
-                            <span className="font-medium text-foreground block">ঢাকার ভেতরে</span>
+                            <span className="font-medium text-foreground block">{t("ঢাকার ভেতরে", "Inside Dhaka")}</span>
                             <span className="text-sm text-primary font-bold">
                               {isFreeDelivery ? (
-                                <span className="text-green-600">ফ্রি ডেলিভারি!</span>
+                                <span className="text-green-600">{t("ফ্রি ডেলিভারি!", "Free Delivery!")}</span>
                               ) : (
                                 <>৳{insideDhakaCharge}</>
                               )}
@@ -307,10 +291,10 @@ const Checkout = () => {
                         >
                           <RadioGroupItem value="outside_dhaka" id="outside_dhaka" />
                           <div className="flex-1">
-                            <span className="font-medium text-foreground block">ঢাকার বাইরে</span>
+                            <span className="font-medium text-foreground block">{t("ঢাকার বাইরে", "Outside Dhaka")}</span>
                             <span className="text-sm text-primary font-bold">
                               {isFreeDelivery ? (
-                                <span className="text-green-600">ফ্রি ডেলিভারি!</span>
+                                <span className="text-green-600">{t("ফ্রি ডেলিভারি!", "Free Delivery!")}</span>
                               ) : (
                                 <>৳{outsideDhakaCharge}</>
                               )}
@@ -320,20 +304,20 @@ const Checkout = () => {
                       </RadioGroup>
                       {freeDeliveryMin > 0 && !isFreeDelivery && (
                         <p className="text-sm text-muted-foreground mt-2">
-                          ৳{freeDeliveryMin}+ অর্ডারে ফ্রি ডেলিভারি
+                          {t(`৳${freeDeliveryMin}+ অর্ডারে ফ্রি ডেলিভারি`, `Free delivery on orders ৳${freeDeliveryMin}+`)}
                         </p>
                       )}
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="city">শহর *</Label>
+                        <Label htmlFor="city">{t("শহর", "City")} *</Label>
                         <Input
                           id="city"
                           name="city"
                           value={formData.city}
                           onChange={handleChange}
-                          placeholder="ঢাকা"
+                          placeholder={t("ঢাকা", "Dhaka")}
                           className={errors.city ? "border-destructive" : ""}
                         />
                         {errors.city && (
@@ -341,24 +325,24 @@ const Checkout = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="area">এলাকা</Label>
+                        <Label htmlFor="area">{t("এলাকা", "Area")}</Label>
                         <Input
                           id="area"
                           name="area"
                           value={formData.area}
                           onChange={handleChange}
-                          placeholder="মিরপুর, উত্তরা..."
+                          placeholder={t("মিরপুর, উত্তরা...", "Mirpur, Uttara...")}
                         />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="shipping_address">সম্পূর্ণ ঠিকানা *</Label>
+                      <Label htmlFor="shipping_address">{t("সম্পূর্ণ ঠিকানা", "Full Address")} *</Label>
                       <Textarea
                         id="shipping_address"
                         name="shipping_address"
                         value={formData.shipping_address}
                         onChange={handleChange}
-                        placeholder="বাড়ি নং, রোড নং, এলাকা..."
+                        placeholder={t("বাড়ি নং, রোড নং, এলাকা...", "House no, Road no, Area...")}
                         className={errors.shipping_address ? "border-destructive" : ""}
                       />
                       {errors.shipping_address && (
@@ -366,13 +350,13 @@ const Checkout = () => {
                       )}
                     </div>
                     <div>
-                      <Label htmlFor="notes">অর্ডার নোট (ঐচ্ছিক)</Label>
+                      <Label htmlFor="notes">{t("অর্ডার নোট (ঐচ্ছিক)", "Order Notes (Optional)")}</Label>
                       <Textarea
                         id="notes"
                         name="notes"
                         value={formData.notes}
                         onChange={handleChange}
-                        placeholder="বিশেষ কোন নির্দেশনা থাকলে লিখুন..."
+                        placeholder={t("বিশেষ কোন নির্দেশনা থাকলে লিখুন...", "Any special instructions...")}
                       />
                     </div>
                   </div>
@@ -387,7 +371,7 @@ const Checkout = () => {
                 >
                   <h2 className="font-display text-xl font-bold text-foreground mb-4">
                     <CreditCard className="w-5 h-5 inline mr-2" />
-                    পেমেন্ট পদ্ধতি
+                    {t("পেমেন্ট পদ্ধতি", "Payment Method")}
                   </h2>
                   <RadioGroup
                     value={formData.payment_method}
@@ -411,12 +395,12 @@ const Checkout = () => {
                             ) : (
                               <Smartphone className="w-5 h-5 text-primary" />
                             )}
-                            <span className="font-medium text-foreground">{method.name_bn}</span>
+                            <span className="font-medium text-foreground">{t(method.name_bn, method.name)}</span>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">{method.instructions_bn}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{t(method.instructions_bn || "", method.instructions || "")}</p>
                           {method.account_number && (
                             <p className="text-sm font-medium text-primary mt-1">
-                              নম্বর: {method.account_number}
+                              {t("নম্বর:", "Number:")} {method.account_number}
                             </p>
                           )}
                         </label>
@@ -433,7 +417,7 @@ const Checkout = () => {
                         name="transaction_id"
                         value={formData.transaction_id}
                         onChange={handleChange}
-                        placeholder="আপনার Transaction ID দিন"
+                        placeholder={t("আপনার Transaction ID দিন", "Enter your Transaction ID")}
                       />
                     </div>
                   )}
@@ -448,7 +432,7 @@ const Checkout = () => {
                   className="bg-card rounded-2xl border border-border p-6 sticky top-24"
                 >
                   <h2 className="font-display text-xl font-bold text-foreground mb-4">
-                    অর্ডার সারসংক্ষেপ
+                    {t("অর্ডার সারসংক্ষেপ", "Order Summary")}
                   </h2>
 
                   {/* Items */}
@@ -456,7 +440,7 @@ const Checkout = () => {
                     {items.map((item) => (
                       <div key={item.id} className="flex justify-between text-sm">
                         <span className="text-foreground/80 line-clamp-1">
-                          {item.name_bn} × {item.quantity}
+                          {t(item.name_bn, item.name)} × {item.quantity}
                         </span>
                         <span className="font-medium shrink-0 ml-2">
                           ৳{((item.sale_price || item.price) * item.quantity).toFixed(0)}
@@ -467,27 +451,27 @@ const Checkout = () => {
 
                   <div className="border-t border-border pt-4 space-y-2 mb-4">
                     <div className="flex justify-between text-foreground/80">
-                      <span>সাবটোটাল</span>
+                      <span>{t("সাবটোটাল", "Subtotal")}</span>
                       <span>৳{subtotal.toFixed(0)}</span>
                     </div>
                     <div className="flex justify-between text-foreground/80">
-                      <span>ডেলিভারি চার্জ</span>
+                      <span>{t("ডেলিভারি চার্জ", "Delivery Charge")}</span>
                       {isFreeDelivery ? (
-                        <span className="text-green-600">ফ্রি!</span>
+                        <span className="text-green-600">{t("ফ্রি!", "Free!")}</span>
                       ) : (
                         <span>৳{finalShipping}</span>
                       )}
                     </div>
                     {!isFreeDelivery && (
                       <p className="text-xs text-muted-foreground">
-                        ৳{freeDeliveryMin}+ অর্ডারে ফ্রি ডেলিভারি
+                        {t(`৳${freeDeliveryMin}+ অর্ডারে ফ্রি ডেলিভারি`, `Free delivery on orders ৳${freeDeliveryMin}+`)}
                       </p>
                     )}
                   </div>
 
                   <div className="border-t border-border pt-4 mb-6">
                     <div className="flex justify-between text-xl font-bold text-foreground">
-                      <span>মোট</span>
+                      <span>{t("মোট", "Total")}</span>
                       <span className="text-primary">৳{total.toFixed(0)}</span>
                     </div>
                   </div>
@@ -501,12 +485,12 @@ const Checkout = () => {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        প্রসেসিং...
+                        {t("প্রসেসিং...", "Processing...")}
                       </>
                     ) : (
                       <>
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        অর্ডার কনফার্ম করুন
+                        {t("অর্ডার কনফার্ম করুন", "Confirm Order")}
                       </>
                     )}
                   </Button>

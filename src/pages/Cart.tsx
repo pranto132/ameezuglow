@@ -3,9 +3,11 @@ import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 
 const Cart = () => {
+  const { t } = useLanguage();
   const { items, updateQuantity, removeItem, getTotal, clearCart } = useCartStore();
 
   if (items.length === 0) {
@@ -20,15 +22,15 @@ const Cart = () => {
             >
               <div className="text-8xl mb-6">🛒</div>
               <h1 className="font-display text-2xl font-bold text-foreground mb-4">
-                আপনার কার্ট খালি
+                {t("আপনার কার্ট খালি", "Your Cart is Empty")}
               </h1>
               <p className="text-muted-foreground mb-6">
-                আমাদের সুন্দর প্রোডাক্ট দেখুন এবং আপনার পছন্দের জিনিস কার্টে যুক্ত করুন।
+                {t("আমাদের সুন্দর প্রোডাক্ট দেখুন এবং আপনার পছন্দের জিনিস কার্টে যুক্ত করুন।", "Browse our beautiful products and add your favorites to the cart.")}
               </p>
               <Button asChild className="btn-primary">
                 <Link to="/shop">
                   <ShoppingBag className="w-4 h-4 mr-2" />
-                  শপিং করুন
+                  {t("শপিং করুন", "Start Shopping")}
                 </Link>
               </Button>
             </motion.div>
@@ -47,7 +49,7 @@ const Cart = () => {
             animate={{ opacity: 1, y: 0 }}
             className="font-display text-3xl font-bold text-foreground mb-8"
           >
-            আপনার কার্ট ({items.length}টি আইটেম)
+            {t(`আপনার কার্ট (${items.length}টি আইটেম)`, `Your Cart (${items.length} items)`)}
           </motion.h1>
 
           <div className="grid lg:grid-cols-3 gap-8">
@@ -72,7 +74,7 @@ const Cart = () => {
                       to={`/product/${item.id}`}
                       className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
                     >
-                      {item.name_bn}
+                      {t(item.name_bn, item.name)}
                     </Link>
                     <div className="flex items-center gap-2 mt-1">
                       {item.sale_price ? (
@@ -124,7 +126,7 @@ const Cart = () => {
               {/* Clear Cart */}
               <Button variant="outline" onClick={clearCart} className="w-full">
                 <Trash2 className="w-4 h-4 mr-2" />
-                কার্ট খালি করুন
+                {t("কার্ট খালি করুন", "Clear Cart")}
               </Button>
             </div>
 
@@ -136,30 +138,30 @@ const Cart = () => {
                 className="bg-card rounded-2xl border border-border p-6 sticky top-24"
               >
                 <h2 className="font-display text-xl font-bold text-foreground mb-6">
-                  অর্ডার সারসংক্ষেপ
+                  {t("অর্ডার সারসংক্ষেপ", "Order Summary")}
                 </h2>
 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-foreground/80">
-                    <span>সাবটোটাল</span>
+                    <span>{t("সাবটোটাল", "Subtotal")}</span>
                     <span>৳{getTotal().toFixed(0)}</span>
                   </div>
                   <div className="flex justify-between text-foreground/80">
-                    <span>ডেলিভারি চার্জ</span>
-                    <span className="text-muted-foreground">চেকআউটে নির্ধারণ হবে</span>
+                    <span>{t("ডেলিভারি চার্জ", "Delivery Charge")}</span>
+                    <span className="text-muted-foreground">{t("চেকআউটে নির্ধারণ হবে", "Calculated at checkout")}</span>
                   </div>
                 </div>
 
                 <div className="border-t border-border pt-4 mb-6">
                   <div className="flex justify-between text-lg font-bold text-foreground">
-                    <span>মোট</span>
+                    <span>{t("মোট", "Total")}</span>
                     <span>৳{getTotal().toFixed(0)}</span>
                   </div>
                 </div>
 
                 <Button asChild className="btn-primary w-full" size="lg">
                   <Link to="/checkout">
-                    চেকআউট করুন
+                    {t("চেকআউট করুন", "Proceed to Checkout")}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Link>
                 </Button>
@@ -168,7 +170,7 @@ const Cart = () => {
                   to="/shop"
                   className="block text-center text-sm text-primary hover:underline mt-4"
                 >
-                  শপিং চালিয়ে যান
+                  {t("শপিং চালিয়ে যান", "Continue Shopping")}
                 </Link>
               </motion.div>
             </div>
