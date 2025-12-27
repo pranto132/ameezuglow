@@ -3,8 +3,23 @@ import { Facebook, Instagram, Phone, Mail, MapPin, Heart, Send } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export const Footer = () => {
+  const { t } = useLanguage();
+  const { getSetting } = useSiteSettings();
+  
+  const copyrightText = getSetting("copyright_text", "");
+  const footerText = getSetting("footer_text", "");
+  const footerTextBn = getSetting("footer_text_bn", "আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো। প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট।");
+  const contactPhone = getSetting("contact_phone", "+880 1XXX-XXXXXX");
+  const contactEmail = getSetting("contact_email", "hello@ameezuglow.com");
+  const addressBn = getSetting("address_bn", "ঢাকা, বাংলাদেশ");
+  const address = getSetting("address", "Dhaka, Bangladesh");
+  const facebookUrl = getSetting("facebook_url", "https://facebook.com");
+  const instagramUrl = getSetting("instagram_url", "https://instagram.com");
+
   return (
     <footer className="bg-foreground text-background relative overflow-hidden">
       {/* Decorative Elements */}
@@ -21,20 +36,20 @@ export const Footer = () => {
             className="max-w-2xl mx-auto text-center"
           >
             <h3 className="font-display text-2xl md:text-3xl font-bold mb-3">
-              আমাদের সাথে যুক্ত থাকুন
+              {t("আমাদের সাথে যুক্ত থাকুন", "Stay Connected")}
             </h3>
             <p className="text-background/70 mb-6">
-              নতুন প্রোডাক্ট, অফার ও বিউটি টিপস পেতে সাবস্ক্রাইব করুন
+              {t("নতুন প্রোডাক্ট, অফার ও বিউটি টিপস পেতে সাবস্ক্রাইব করুন", "Subscribe for new products, offers & beauty tips")}
             </p>
             <div className="flex gap-2 max-w-md mx-auto">
               <Input
                 type="email"
-                placeholder="আপনার ইমেইল ঠিকানা"
+                placeholder={t("আপনার ইমেইল ঠিকানা", "Your email address")}
                 className="bg-background/10 border-background/20 text-background placeholder:text-background/50 focus:border-blush"
               />
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6">
                 <Send className="w-4 h-4 mr-2" />
-                সাবস্ক্রাইব
+                {t("সাবস্ক্রাইব", "Subscribe")}
               </Button>
             </div>
           </motion.div>
@@ -52,11 +67,11 @@ export const Footer = () => {
               </span>
             </Link>
             <p className="text-background/70 text-sm leading-relaxed mb-6">
-              আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো। প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট।
+              {t(footerTextBn || "আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো। প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট।", footerText || "Bring new light to your natural glow. Premium cosmetics & skincare products.")}
             </p>
             <div className="flex gap-3">
               <a
-                href="https://facebook.com"
+                href={facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2.5 bg-background/10 rounded-xl hover:bg-primary hover:scale-110 transition-all duration-300"
@@ -64,7 +79,7 @@ export const Footer = () => {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="https://instagram.com"
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2.5 bg-background/10 rounded-xl hover:bg-primary hover:scale-110 transition-all duration-300"
@@ -78,7 +93,7 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold text-lg mb-5 flex items-center gap-2">
               <span className="w-8 h-0.5 bg-primary rounded-full" />
-              দ্রুত লিংক
+              {t("দ্রুত লিংক", "Quick Links")}
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
@@ -86,7 +101,7 @@ export const Footer = () => {
                   to="/shop"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  সব প্রোডাক্ট
+                  {t("সব প্রোডাক্ট", "All Products")}
                 </Link>
               </li>
               <li>
@@ -94,7 +109,7 @@ export const Footer = () => {
                   to="/shop?offers=true"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  অফার
+                  {t("অফার", "Offers")}
                 </Link>
               </li>
               <li>
@@ -102,7 +117,7 @@ export const Footer = () => {
                   to="/shop?category=skincare"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  স্কিনকেয়ার
+                  {t("স্কিনকেয়ার", "Skincare")}
                 </Link>
               </li>
               <li>
@@ -110,7 +125,7 @@ export const Footer = () => {
                   to="/shop?category=makeup"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  মেকআপ
+                  {t("মেকআপ", "Makeup")}
                 </Link>
               </li>
             </ul>
@@ -120,7 +135,7 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold text-lg mb-5 flex items-center gap-2">
               <span className="w-8 h-0.5 bg-primary rounded-full" />
-              সহায়তা
+              {t("সহায়তা", "Support")}
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
@@ -128,7 +143,7 @@ export const Footer = () => {
                   to="/track-order"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  অর্ডার ট্র্যাক করুন
+                  {t("অর্ডার ট্র্যাক করুন", "Track Order")}
                 </Link>
               </li>
               <li>
@@ -136,7 +151,7 @@ export const Footer = () => {
                   to="/privacy"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  গোপনীয়তা নীতি
+                  {t("গোপনীয়তা নীতি", "Privacy Policy")}
                 </Link>
               </li>
               <li>
@@ -144,7 +159,7 @@ export const Footer = () => {
                   to="/returns"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  রিটার্ন ও রিফান্ড
+                  {t("রিটার্ন ও রিফান্ড", "Returns & Refunds")}
                 </Link>
               </li>
               <li>
@@ -152,7 +167,7 @@ export const Footer = () => {
                   to="/terms"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  শর্তাবলী
+                  {t("শর্তাবলী", "Terms & Conditions")}
                 </Link>
               </li>
               <li>
@@ -160,7 +175,7 @@ export const Footer = () => {
                   to="/faq"
                   className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
                 >
-                  সাধারণ প্রশ্ন
+                  {t("সাধারণ প্রশ্ন", "FAQ")}
                 </Link>
               </li>
             </ul>
@@ -170,36 +185,36 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold text-lg mb-5 flex items-center gap-2">
               <span className="w-8 h-0.5 bg-primary rounded-full" />
-              যোগাযোগ
+              {t("যোগাযোগ", "Contact")}
             </h4>
             <ul className="space-y-4 text-sm">
               <li>
                 <a
-                  href="tel:+8801XXXXXXXXX"
+                  href={`tel:${contactPhone.replace(/\s+/g, '')}`}
                   className="flex items-center gap-3 text-background/70 hover:text-blush transition-colors"
                 >
                   <div className="p-2 bg-background/10 rounded-lg">
                     <Phone className="w-4 h-4 text-blush" />
                   </div>
-                  <span>+880 1XXX-XXXXXX</span>
+                  <span>{contactPhone}</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:hello@ameezuglow.com"
+                  href={`mailto:${contactEmail}`}
                   className="flex items-center gap-3 text-background/70 hover:text-blush transition-colors"
                 >
                   <div className="p-2 bg-background/10 rounded-lg">
                     <Mail className="w-4 h-4 text-blush" />
                   </div>
-                  <span>hello@ameezuglow.com</span>
+                  <span>{contactEmail}</span>
                 </a>
               </li>
               <li className="flex items-start gap-3 text-background/70">
                 <div className="p-2 bg-background/10 rounded-lg mt-0.5">
                   <MapPin className="w-4 h-4 text-blush" />
                 </div>
-                <span>ঢাকা, বাংলাদেশ</span>
+                <span>{t(addressBn, address)}</span>
               </li>
             </ul>
           </div>
@@ -209,7 +224,7 @@ export const Footer = () => {
         <div className="mt-12 pt-8 border-t border-background/10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <span className="text-sm text-background/50">পেমেন্ট মেথড:</span>
+              <span className="text-sm text-background/50">{t("পেমেন্ট মেথড:", "Payment Methods:")}</span>
               <div className="flex gap-2">
                 <div className="px-3 py-1.5 bg-background/10 rounded text-xs font-medium">
                   bKash
@@ -232,7 +247,9 @@ export const Footer = () => {
       {/* Copyright */}
       <div className="border-t border-background/10 py-6">
         <div className="container mx-auto container-padding text-center text-sm text-background/50">
-          <p>© {new Date().getFullYear()} Ameezuglow. সর্বস্বত্ব সংরক্ষিত।</p>
+          <p>
+            {copyrightText || `© ${new Date().getFullYear()} Ameezuglow. ${t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}`}
+          </p>
         </div>
       </div>
     </footer>
