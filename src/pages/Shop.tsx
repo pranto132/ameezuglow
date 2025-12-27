@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { ProductCard } from "@/components/products/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Search, SlidersHorizontal, X, Grid3X3, LayoutGrid } from "lucide-react";
 
 const Shop = () => {
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -113,7 +115,7 @@ const Shop = () => {
     <div className="space-y-6">
       {/* Categories */}
       <div>
-        <h3 className="font-semibold text-foreground mb-3">ক্যাটাগরি</h3>
+        <h3 className="font-semibold text-foreground mb-3">{t("ক্যাটাগরি", "Categories")}</h3>
         <div className="space-y-2">
           {categories?.map((category) => (
             <label
@@ -124,7 +126,7 @@ const Shop = () => {
                 checked={selectedCategories.includes(category.slug)}
                 onCheckedChange={() => handleCategoryToggle(category.slug)}
               />
-              <span className="text-sm text-foreground/80">{category.name_bn}</span>
+              <span className="text-sm text-foreground/80">{t(category.name_bn, category.name)}</span>
             </label>
           ))}
         </div>
@@ -132,7 +134,7 @@ const Shop = () => {
 
       {/* Price Range */}
       <div>
-        <h3 className="font-semibold text-foreground mb-3">মূল্য পরিসীমা</h3>
+        <h3 className="font-semibold text-foreground mb-3">{t("মূল্য পরিসীমা", "Price Range")}</h3>
         <Slider
           value={priceRange}
           onValueChange={(value) => setPriceRange(value as [number, number])}
@@ -154,7 +156,7 @@ const Shop = () => {
             checked={showOnlyDiscounted}
             onCheckedChange={(checked) => setShowOnlyDiscounted(checked as boolean)}
           />
-          <span className="text-sm text-foreground/80">শুধুমাত্র ছাড়কৃত পণ্য</span>
+          <span className="text-sm text-foreground/80">{t("শুধুমাত্র ছাড়কৃত পণ্য", "Discounted Only")}</span>
         </label>
       </div>
 
@@ -162,7 +164,7 @@ const Shop = () => {
       {hasActiveFilters && (
         <Button variant="outline" onClick={clearFilters} className="w-full">
           <X className="w-4 h-4 mr-2" />
-          ফিল্টার মুছুন
+          {t("ফিল্টার মুছুন", "Clear Filters")}
         </Button>
       )}
     </div>
@@ -179,10 +181,10 @@ const Shop = () => {
             className="text-center mb-8"
           >
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-              আমাদের প্রোডাক্টসমূহ
+              {t("আমাদের প্রোডাক্টসমূহ", "Our Products")}
             </h1>
             <p className="text-muted-foreground">
-              সেরা মানের কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট
+              {t("সেরা মানের কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট", "Best quality cosmetics & skincare products")}
             </p>
           </motion.div>
 
@@ -192,7 +194,7 @@ const Shop = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
-                placeholder="প্রোডাক্ট খুঁজুন..."
+                placeholder={t("প্রোডাক্ট খুঁজুন...", "Search products...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-card border-border"
@@ -204,12 +206,12 @@ const Shop = () => {
               <SheetTrigger asChild>
                 <Button variant="outline" className="md:hidden">
                   <SlidersHorizontal className="w-4 h-4 mr-2" />
-                  ফিল্টার
+                  {t("ফিল্টার", "Filter")}
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
                 <SheetHeader>
-                  <SheetTitle>ফিল্টার অপশন</SheetTitle>
+                  <SheetTitle>{t("ফিল্টার অপশন", "Filter Options")}</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6">
                   <FilterContent />
@@ -238,7 +240,7 @@ const Shop = () => {
             {/* Desktop Sidebar Filters */}
             <aside className="hidden md:block w-64 shrink-0">
               <div className="sticky top-24 bg-card rounded-2xl border border-border p-6">
-                <h2 className="font-semibold text-lg text-foreground mb-4">ফিল্টার</h2>
+                <h2 className="font-semibold text-lg text-foreground mb-4">{t("ফিল্টার", "Filter")}</h2>
                 <FilterContent />
               </div>
             </aside>
@@ -248,7 +250,7 @@ const Shop = () => {
               {/* Results Count */}
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-muted-foreground">
-                  {filteredProducts.length} টি প্রোডাক্ট পাওয়া গেছে
+                  {t(`${filteredProducts.length} টি প্রোডাক্ট পাওয়া গেছে`, `${filteredProducts.length} products found`)}
                 </p>
               </div>
 
@@ -266,14 +268,14 @@ const Shop = () => {
                 >
                   <div className="text-6xl mb-4">😔</div>
                   <h3 className="text-xl font-semibold text-foreground mb-2">
-                    কোন প্রোডাক্ট পাওয়া যায়নি
+                    {t("কোন প্রোডাক্ট পাওয়া যায়নি", "No Products Found")}
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    অনুগ্রহ করে আপনার ফিল্টার পরিবর্তন করুন
+                    {t("অনুগ্রহ করে আপনার ফিল্টার পরিবর্তন করুন", "Please try changing your filters")}
                   </p>
                   {hasActiveFilters && (
                     <Button onClick={clearFilters} variant="outline">
-                      ফিল্টার মুছুন
+                      {t("ফিল্টার মুছুন", "Clear Filters")}
                     </Button>
                   )}
                 </motion.div>

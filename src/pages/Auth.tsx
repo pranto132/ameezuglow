@@ -6,17 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { z } from "zod";
-
-const authSchema = z.object({
-  email: z.string().email("সঠিক ইমেইল দিন"),
-  password: z.string().min(6, "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে"),
-});
 
 const Auth = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading, signIn, signUp } = useAuth();
+  const { t } = useLanguage();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +23,11 @@ const Auth = () => {
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const authSchema = z.object({
+    email: z.string().email(t("সঠিক ইমেইল দিন", "Enter a valid email")),
+    password: z.string().min(6, t("পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে", "Password must be at least 6 characters")),
+  });
 
   // Redirect if already logged in
   useEffect(() => {
@@ -52,20 +54,20 @@ const Auth = () => {
         const { error } = await signUp(formData.email, formData.password);
         if (error) {
           if (error.message.includes("already registered")) {
-            toast.error("এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে");
+            toast.error(t("এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে", "An account with this email already exists"));
           } else {
-            toast.error(error.message || "সাইন আপ করতে সমস্যা হয়েছে");
+            toast.error(error.message || t("সাইন আপ করতে সমস্যা হয়েছে", "Error signing up"));
           }
         } else {
-          toast.success("অ্যাকাউন্ট তৈরি সফল! আপনি এখন লগ ইন করতে পারবেন।");
+          toast.success(t("অ্যাকাউন্ট তৈরি সফল! আপনি এখন লগ ইন করতে পারবেন।", "Account created successfully! You can now log in."));
           setIsSignUp(false);
         }
       } else {
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
-          toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
+          toast.error(t("ইমেইল বা পাসওয়ার্ড ভুল", "Incorrect email or password"));
         } else {
-          toast.success("লগইন সফল!");
+          toast.success(t("লগইন সফল!", "Login successful!"));
           navigate("/");
         }
       }
@@ -105,7 +107,7 @@ const Auth = () => {
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          হোম পেজে ফিরে যান
+          {t("হোম পেজে ফিরে যান", "Back to Home")}
         </Link>
 
         <div className="bg-card rounded-2xl border border-border shadow-soft p-8">
@@ -115,14 +117,14 @@ const Auth = () => {
               Ameezuglow
             </h1>
             <p className="text-muted-foreground mt-2">
-              {isSignUp ? "নতুন অ্যাকাউন্ট তৈরি করুন" : "আপনার অ্যাকাউন্টে লগইন করুন"}
+              {isSignUp ? t("নতুন অ্যাকাউন্ট তৈরি করুন", "Create a new account") : t("আপনার অ্যাকাউন্টে লগইন করুন", "Login to your account")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
               <div>
-                <Label htmlFor="name">নাম</Label>
+                <Label htmlFor="name">{t("নাম", "Name")}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -130,7 +132,7 @@ const Auth = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="আপনার নাম"
+                    placeholder={t("আপনার নাম", "Your name")}
                     className="pl-10"
                   />
                 </div>
@@ -138,7 +140,7 @@ const Auth = () => {
             )}
 
             <div>
-              <Label htmlFor="email">ইমেইল *</Label>
+              <Label htmlFor="email">{t("ইমেইল", "Email")} *</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -157,7 +159,7 @@ const Auth = () => {
             </div>
 
             <div>
-              <Label htmlFor="password">পাসওয়ার্ড *</Label>
+              <Label htmlFor="password">{t("পাসওয়ার্ড", "Password")} *</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -190,13 +192,13 @@ const Auth = () => {
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
               ) : null}
-              {isSignUp ? "সাইন আপ করুন" : "লগইন করুন"}
+              {isSignUp ? t("সাইন আপ করুন", "Sign Up") : t("লগইন করুন", "Login")}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-muted-foreground">
-              {isSignUp ? "আগে থেকেই অ্যাকাউন্ট আছে?" : "অ্যাকাউন্ট নেই?"}
+              {isSignUp ? t("আগে থেকেই অ্যাকাউন্ট আছে?", "Already have an account?") : t("অ্যাকাউন্ট নেই?", "Don't have an account?")}
               <button
                 onClick={() => {
                   setIsSignUp(!isSignUp);
@@ -204,7 +206,7 @@ const Auth = () => {
                 }}
                 className="ml-2 text-primary hover:underline font-medium"
               >
-                {isSignUp ? "লগইন করুন" : "সাইন আপ করুন"}
+                {isSignUp ? t("লগইন করুন", "Login") : t("সাইন আপ করুন", "Sign Up")}
               </button>
             </p>
           </div>
@@ -212,11 +214,11 @@ const Auth = () => {
           {/* Guest Checkout Option */}
           <div className="mt-6 pt-6 border-t border-border text-center">
             <p className="text-sm text-muted-foreground mb-3">
-              অ্যাকাউন্ট ছাড়াই অর্ডার করতে চান?
+              {t("অ্যাকাউন্ট ছাড়াই অর্ডার করতে চান?", "Want to order without an account?")}
             </p>
             <Link to="/checkout">
               <Button variant="outline" className="w-full">
-                গেস্ট হিসেবে অর্ডার করুন
+                {t("গেস্ট হিসেবে অর্ডার করুন", "Order as Guest")}
               </Button>
             </Link>
           </div>

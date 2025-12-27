@@ -6,6 +6,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Package, Eye, ShoppingBag, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
@@ -18,17 +19,18 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-500/10 text-red-600 border-red-500/20",
 };
 
-const statusLabels: Record<string, string> = {
-  pending: "অপেক্ষমাণ",
-  processing: "প্রসেসিং",
-  shipped: "শিপ করা হয়েছে",
-  delivered: "ডেলিভারি সম্পন্ন",
-  cancelled: "বাতিল",
-};
-
 const Orders = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
+  const { t } = useLanguage();
+
+  const statusLabels: Record<string, string> = {
+    pending: t("অপেক্ষমাণ", "Pending"),
+    processing: t("প্রসেসিং", "Processing"),
+    shipped: t("শিপ করা হয়েছে", "Shipped"),
+    delivered: t("ডেলিভারি সম্পন্ন", "Delivered"),
+    cancelled: t("বাতিল", "Cancelled"),
+  };
 
   // Redirect if not logged in
   useEffect(() => {
@@ -77,10 +79,10 @@ const Orders = () => {
             className="mb-8"
           >
             <h1 className="font-display text-3xl font-bold text-foreground">
-              আমার অর্ডার সমূহ
+              {t("আমার অর্ডার সমূহ", "My Orders")}
             </h1>
             <p className="text-muted-foreground mt-2">
-              আপনার সব অর্ডারের তালিকা এখানে দেখুন
+              {t("আপনার সব অর্ডারের তালিকা এখানে দেখুন", "View all your orders here")}
             </p>
           </motion.div>
 
@@ -107,7 +109,7 @@ const Orders = () => {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-foreground">
-                            অর্ডার #{order.order_number}
+                            {t("অর্ডার", "Order")} #{order.order_number}
                           </h3>
                           <Badge
                             variant="outline"
@@ -120,7 +122,7 @@ const Orders = () => {
                           {format(new Date(order.created_at!), "dd MMM yyyy, hh:mm a")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {order.order_items?.length || 0} টি প্রোডাক্ট
+                          {order.order_items?.length || 0} {t("টি প্রোডাক্ট", "products")}
                         </p>
                       </div>
                     </div>
@@ -128,7 +130,7 @@ const Orders = () => {
                     {/* Order Total & Actions */}
                     <div className="flex items-center gap-4 md:gap-6">
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">মোট</p>
+                        <p className="text-sm text-muted-foreground">{t("মোট", "Total")}</p>
                         <p className="text-xl font-bold text-primary">
                           ৳{Number(order.total).toFixed(0)}
                         </p>
@@ -136,7 +138,7 @@ const Orders = () => {
                       <Link to={`/order-success?order=${order.order_number}`}>
                         <Button variant="outline" size="sm" className="gap-2">
                           <Eye className="w-4 h-4" />
-                          বিস্তারিত
+                          {t("বিস্তারিত", "Details")}
                         </Button>
                       </Link>
                     </div>
@@ -156,7 +158,7 @@ const Orders = () => {
                         ))}
                         {order.order_items.length > 3 && (
                           <span className="text-sm px-3 py-1 bg-muted rounded-full text-muted-foreground">
-                            +{order.order_items.length - 3} আরও
+                            +{order.order_items.length - 3} {t("আরও", "more")}
                           </span>
                         )}
                       </div>
@@ -167,7 +169,7 @@ const Orders = () => {
                   {order.tracking_number && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <p className="text-sm text-muted-foreground">
-                        ট্র্যাকিং নম্বর:{" "}
+                        {t("ট্র্যাকিং নম্বর:", "Tracking Number:")}{" "}
                         <span className="font-medium text-foreground">
                           {order.tracking_number}
                         </span>
@@ -188,14 +190,14 @@ const Orders = () => {
             >
               <ShoppingBag className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-foreground mb-2">
-                কোন অর্ডার নেই
+                {t("কোন অর্ডার নেই", "No Orders Yet")}
               </h2>
               <p className="text-muted-foreground mb-6">
-                আপনি এখনও কোন অর্ডার করেননি। এখনই শপিং শুরু করুন!
+                {t("আপনি এখনও কোন অর্ডার করেননি। এখনই শপিং শুরু করুন!", "You haven't placed any orders yet. Start shopping now!")}
               </p>
               <Link to="/shop">
                 <Button className="btn-primary gap-2">
-                  শপিং করুন
+                  {t("শপিং করুন", "Start Shopping")}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
@@ -205,7 +207,7 @@ const Orders = () => {
           {/* Note about email matching */}
           {orders && orders.length === 0 && user?.email && (
             <p className="text-center text-sm text-muted-foreground mt-4">
-              টিপ: অর্ডার দেখতে হলে চেকআউটে একই ইমেইল ({user.email}) ব্যবহার করুন
+              {t(`টিপ: অর্ডার দেখতে হলে চেকআউটে একই ইমেইল (${user.email}) ব্যবহার করুন`, `Tip: Use the same email (${user.email}) during checkout to see your orders here`)}
             </p>
           )}
         </div>
