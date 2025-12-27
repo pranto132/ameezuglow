@@ -5,8 +5,11 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const FeaturedProducts = () => {
+  const { t } = useLanguage();
+  
   const { data: products, isLoading } = useQuery({
     queryKey: ["featured-products"],
     queryFn: async () => {
@@ -41,18 +44,18 @@ export const FeaturedProducts = () => {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
             >
               <Sparkles className="w-4 h-4" />
-              বেস্ট সেলার
+              {t("বেস্ট সেলার", "Best Seller")}
             </motion.span>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3">
-              জনপ্রিয় <span className="text-primary">প্রোডাক্ট</span>
+              {t("জনপ্রিয়", "Popular")} <span className="text-primary">{t("প্রোডাক্ট", "Products")}</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-lg">
-              আমাদের সবচেয়ে বেশি বিক্রিত ও গ্রাহকদের পছন্দের প্রোডাক্টসমূহ
+              {t("আমাদের সবচেয়ে বেশি বিক্রিত ও গ্রাহকদের পছন্দের প্রোডাক্টসমূহ", "Our best selling and customer favorite products")}
             </p>
           </div>
           <Button asChild variant="outline" className="w-fit group h-12 px-6">
             <Link to="/shop">
-              সব প্রোডাক্ট দেখুন
+              {t("সব প্রোডাক্ট দেখুন", "View All Products")}
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
@@ -84,13 +87,13 @@ export const FeaturedProducts = () => {
           >
             <Sparkles className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-2">
-              শীঘ্রই আসছে
+              {t("শীঘ্রই আসছে", "Coming Soon")}
             </h3>
             <p className="text-muted-foreground mb-6">
-              আমাদের নতুন কালেকশন শীঘ্রই আসছে
+              {t("আমাদের নতুন কালেকশন শীঘ্রই আসছে", "Our new collection is coming soon")}
             </p>
             <Button asChild className="btn-primary">
-              <Link to="/shop">সব প্রোডাক্ট দেখুন</Link>
+              <Link to="/shop">{t("সব প্রোডাক্ট দেখুন", "View All Products")}</Link>
             </Button>
           </motion.div>
         )}
@@ -107,15 +110,15 @@ export const FeaturedProducts = () => {
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
-                  নতুন গ্রাহকদের জন্য বিশেষ অফার!
+                  {t("নতুন গ্রাহকদের জন্য বিশেষ অফার!", "Special Offer for New Customers!")}
                 </h3>
                 <p className="text-muted-foreground">
-                  প্রথম অর্ডারে পান ১৫% ছাড়। কোড: <span className="font-bold text-primary">WELCOME15</span>
+                  {t("প্রথম অর্ডারে পান ১৫% ছাড়। কোড:", "Get 15% off on your first order. Code:")} <span className="font-bold text-primary">WELCOME15</span>
                 </p>
               </div>
               <Button asChild className="btn-primary whitespace-nowrap">
                 <Link to="/shop">
-                  অফার নিন
+                  {t("অফার নিন", "Get Offer")}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>

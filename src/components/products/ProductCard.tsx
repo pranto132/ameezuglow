@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingBag, Heart, Eye } from "lucide-react";
 import { useCartStore, useWishlistStore } from "@/lib/store";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Product {
   id: string;
@@ -21,6 +22,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+  const { t } = useLanguage();
   const addItem = useCartStore((state) => state.addItem);
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
   const inWishlist = isInWishlist(product.id);
@@ -36,7 +38,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       sale_price: product.sale_price || undefined,
       image: product.images?.[0],
     });
-    toast.success("কার্টে যুক্ত হয়েছে!");
+    toast.success(t("কার্টে যুক্ত হয়েছে!", "Added to cart!"));
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
@@ -44,10 +46,10 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
     e.stopPropagation();
     if (inWishlist) {
       removeFromWishlist(product.id);
-      toast.info("উইশলিস্ট থেকে সরানো হয়েছে");
+      toast.info(t("উইশলিস্ট থেকে সরানো হয়েছে", "Removed from wishlist"));
     } else {
       addToWishlist(product.id);
-      toast.success("উইশলিস্টে যুক্ত হয়েছে!");
+      toast.success(t("উইশলিস্টে যুক্ত হয়েছে!", "Added to wishlist!"));
     }
   };
 
@@ -115,7 +117,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               className="w-full bg-white text-foreground hover:bg-white/90 font-medium"
             >
               <ShoppingBag className="w-4 h-4 mr-2" />
-              কার্টে যুক্ত করুন
+              {t("কার্টে যুক্ত করুন", "Add to Cart")}
             </Button>
           </div>
         </div>
@@ -123,7 +125,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         {/* Product Info */}
         <div className="p-4 space-y-2">
           <h3 className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug min-h-[2.5rem]">
-            {product.name_bn}
+            {t(product.name_bn, product.name)}
           </h3>
           
           <div className="flex items-center gap-2">

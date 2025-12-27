@@ -76,10 +76,10 @@ export const Navbar = () => {
         <div className="container mx-auto container-padding">
           {/* Top Bar */}
           <div className="hidden lg:flex items-center justify-between py-2 text-xs text-muted-foreground border-b border-border/30">
-            <span>🎁 ৳২০০০+ অর্ডারে ফ্রি ডেলিভারি</span>
+            <span>🎁 {t("৳২০০০+ অর্ডারে ফ্রি ডেলিভারি", "Free delivery on orders ৳2000+")}</span>
             <div className="flex items-center gap-4">
-              <Link to="/about" className="hover:text-primary transition-colors">আমাদের সম্পর্কে</Link>
-              <Link to="/contact" className="hover:text-primary transition-colors">যোগাযোগ</Link>
+              <Link to="/about" className="hover:text-primary transition-colors">{t("আমাদের সম্পর্কে", "About Us")}</Link>
+              <Link to="/contact" className="hover:text-primary transition-colors">{t("যোগাযোগ", "Contact")}</Link>
               <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
             </div>
           </div>
@@ -118,7 +118,7 @@ export const Navbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-1 px-4 py-2 rounded-lg font-medium text-foreground/80 hover:text-primary hover:bg-muted/50 transition-all duration-200">
-                    ক্যাটাগরি
+                    {t("ক্যাটাগরি", "Categories")}
                     <ChevronDown className="w-4 h-4" />
                   </button>
                 </DropdownMenuTrigger>
@@ -137,7 +137,7 @@ export const Navbar = () => {
                 to="/shop?offers=true"
                 className="px-4 py-2 rounded-lg font-medium text-primary hover:bg-primary/5 transition-all duration-200"
               >
-                🔥 অফার
+                🔥 {t("অফার", "Offers")}
               </Link>
             </nav>
 
@@ -188,13 +188,13 @@ export const Navbar = () => {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <Link to="/orders" className="cursor-pointer">
-                          আমার অর্ডার
+                          {t("আমার অর্ডার", "My Orders")}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                         <LogOut className="w-4 h-4 mr-2" />
-                        লগআউট
+                        {t("লগআউট", "Logout")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -236,7 +236,7 @@ export const Navbar = () => {
                 <div className="relative max-w-2xl mx-auto">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
-                    placeholder="আপনার পছন্দের প্রোডাক্ট খুঁজুন..."
+                    placeholder={t("আপনার পছন্দের প্রোডাক্ট খুঁজুন...", "Search for your favorite products...")}
                     className="pl-12 h-12 text-base rounded-xl border-border/50 focus:border-primary"
                     autoFocus
                   />
@@ -244,7 +244,7 @@ export const Navbar = () => {
                     size="sm"
                     className="absolute right-2 top-1/2 -translate-y-1/2 btn-primary"
                   >
-                    খুঁজুন
+                    {t("খুঁজুন", "Search")}
                   </Button>
                 </div>
               </div>
@@ -277,7 +277,7 @@ export const Navbar = () => {
                 ))}
                 
                 <div className="py-2 px-4">
-                  <p className="text-sm text-muted-foreground mb-2">ক্যাটাগরি</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t("ক্যাটাগরি", "Categories")}</p>
                   <div className="grid grid-cols-2 gap-2">
                     {categoryLinks.map((link) => (
                       <Link
@@ -295,7 +295,7 @@ export const Navbar = () => {
                   to="/shop?offers=true"
                   className="block py-3 px-4 rounded-xl font-medium text-primary bg-primary/5"
                 >
-                  🔥 অফার দেখুন
+                  🔥 {t("অফার দেখুন", "View Offers")}
                 </Link>
 
                 {/* User Auth in Mobile Menu */}
@@ -308,13 +308,13 @@ export const Navbar = () => {
                           to="/orders"
                           className="flex-1 py-2 text-center text-sm bg-muted rounded-lg hover:bg-muted/80"
                         >
-                          আমার অর্ডার
+                          {t("আমার অর্ডার", "My Orders")}
                         </Link>
                         <button
                           onClick={handleSignOut}
                           className="flex-1 py-2 text-center text-sm text-destructive bg-destructive/10 rounded-lg hover:bg-destructive/20"
                         >
-                          লগআউট
+                          {t("লগআউট", "Logout")}
                         </button>
                       </div>
                     </div>
@@ -324,7 +324,7 @@ export const Navbar = () => {
                         to="/auth"
                         className="flex-1 py-2 text-center text-sm font-medium bg-primary text-primary-foreground rounded-lg"
                       >
-                        লগইন / সাইন আপ
+                        {t("লগইন / সাইন আপ", "Login / Sign Up")}
                       </Link>
                     </div>
                   )}
@@ -335,13 +335,13 @@ export const Navbar = () => {
                     to="/about"
                     className="flex-1 py-2 text-center text-sm text-muted-foreground hover:text-primary"
                   >
-                    আমাদের সম্পর্কে
+                    {t("আমাদের সম্পর্কে", "About Us")}
                   </Link>
                   <Link
                     to="/contact"
                     className="flex-1 py-2 text-center text-sm text-muted-foreground hover:text-primary"
                   >
-                    যোগাযোগ
+                    {t("যোগাযোগ", "Contact")}
                   </Link>
                   <Link
                     to="/admin"
