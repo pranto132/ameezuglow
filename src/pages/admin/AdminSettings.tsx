@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Save, Globe, Phone, MapPin, Share2, Loader2, Image } from "lucide-react";
+import { Settings, Save, Globe, Phone, MapPin, Share2, Loader2, Image, Facebook, BarChart3, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/admin/ImageUpload";
 
@@ -53,7 +54,11 @@ const defaultSettings = {
   meta_description: "",
   meta_keywords: "",
   google_analytics_id: "",
+  
+  // Facebook Pixel
   facebook_pixel_id: "",
+  facebook_pixel_access_token: "",
+  facebook_pixel_test_code: "",
 };
 
 const AdminSettings = () => {
@@ -148,10 +153,11 @@ const AdminSettings = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general">সাধারণ</TabsTrigger>
           <TabsTrigger value="contact">যোগাযোগ</TabsTrigger>
           <TabsTrigger value="social">সোশ্যাল মিডিয়া</TabsTrigger>
+          <TabsTrigger value="facebook-pixel">Facebook Pixel</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
         </TabsList>
 
@@ -424,6 +430,130 @@ const AdminSettings = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="facebook-pixel" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Facebook className="w-5 h-5" />
+                Facebook Pixel সেটআপ
+              </CardTitle>
+              <CardDescription>
+                Facebook Pixel দিয়ে আপনার বিজ্ঞাপন ট্র্যাক করুন এবং কাস্টম অডিয়েন্স তৈরি করুন
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {settings.facebook_pixel_id ? (
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    Facebook Pixel সক্রিয় আছে। Pixel ID: <span className="font-mono font-medium">{settings.facebook_pixel_id}</span>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800">
+                    Facebook Pixel এখনো সেটআপ করা হয়নি। নিচে Pixel ID দিন।
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Pixel ID *</Label>
+                  <Input
+                    value={settings.facebook_pixel_id}
+                    onChange={(e) => updateSetting("facebook_pixel_id", e.target.value)}
+                    placeholder="1234567890123456"
+                    className="font-mono"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Facebook Events Manager থেকে Pixel ID কপি করুন। এটি সাধারণত ১৫-১৬ ডিজিটের নম্বর।
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Conversions API Access Token (ঐচ্ছিক)</Label>
+                  <Textarea
+                    value={settings.facebook_pixel_access_token}
+                    onChange={(e) => updateSetting("facebook_pixel_access_token", e.target.value)}
+                    placeholder="EAAxxxxxxxx..."
+                    rows={3}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    সার্ভার সাইড ট্র্যাকিংয়ের জন্য Conversions API Access Token দিন। এটি আরও সঠিক ডেটা সংগ্রহে সাহায্য করে।
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Test Event Code (ঐচ্ছিক)</Label>
+                  <Input
+                    value={settings.facebook_pixel_test_code}
+                    onChange={(e) => updateSetting("facebook_pixel_test_code", e.target.value)}
+                    placeholder="TEST12345"
+                    className="font-mono"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    টেস্ট মোডে ইভেন্ট দেখতে Events Manager থেকে Test Event Code ব্যবহার করুন।
+                  </p>
+                </div>
+              </div>
+
+              <Card className="bg-muted/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    স্বয়ংক্রিয় ইভেন্ট ট্র্যাকিং
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Pixel সেটআপ করলে নিম্নলিখিত ইভেন্টগুলো স্বয়ংক্রিয়ভাবে ট্র্যাক হবে:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>PageView - প্রতিটি পেজ ভিজিট</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>ViewContent - পণ্য দেখা</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>AddToCart - কার্টে যোগ</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>InitiateCheckout - চেকআউট শুরু</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>Purchase - অর্ডার সম্পন্ন</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>Search - পণ্য সার্চ</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-2">কিভাবে Pixel ID পাবেন?</h4>
+                <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                  <li>Facebook Business Suite এ যান</li>
+                  <li>Events Manager ওপেন করুন</li>
+                  <li>Connect Data Sources ক্লিক করুন</li>
+                  <li>Web সিলেক্ট করে Pixel তৈরি করুন</li>
+                  <li>Pixel ID কপি করে এখানে পেস্ট করুন</li>
+                </ol>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="seo" className="space-y-6">
           <Card>
             <CardHeader>
@@ -462,23 +592,13 @@ const AdminSettings = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Google Analytics ID</Label>
-                  <Input
-                    value={settings.google_analytics_id}
-                    onChange={(e) => updateSetting("google_analytics_id", e.target.value)}
-                    placeholder="G-XXXXXXXXXX"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Facebook Pixel ID</Label>
-                  <Input
-                    value={settings.facebook_pixel_id}
-                    onChange={(e) => updateSetting("facebook_pixel_id", e.target.value)}
-                    placeholder="XXXXXXXXXXXXXXXX"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>Google Analytics ID</Label>
+                <Input
+                  value={settings.google_analytics_id}
+                  onChange={(e) => updateSetting("google_analytics_id", e.target.value)}
+                  placeholder="G-XXXXXXXXXX"
+                />
               </div>
             </CardContent>
           </Card>
