@@ -1,46 +1,62 @@
 import { motion } from "framer-motion";
 import { Check, Truck, Shield, Heart, Sparkles, Award, Clock, Headphones } from "lucide-react";
-
-const features = [
-  {
-    icon: Shield,
-    title: "১০০% অরিজিনাল",
-    description: "সব প্রোডাক্ট সরাসরি ব্র্যান্ড থেকে সংগ্রহ করা",
-    color: "from-blue-500/20 to-cyan-500/20",
-  },
-  {
-    icon: Heart,
-    title: "স্কিন-ফ্রেন্ডলি",
-    description: "বাংলাদেশি ত্বকের জন্য উপযোগী ফর্মুলা",
-    color: "from-pink-500/20 to-rose-500/20",
-  },
-  {
-    icon: Award,
-    title: "প্রিমিয়াম কোয়ালিটি",
-    description: "বিশ্বমানের কসমেটিকস ও স্কিনকেয়ার",
-    color: "from-amber-500/20 to-yellow-500/20",
-  },
-  {
-    icon: Truck,
-    title: "দ্রুত ডেলিভারি",
-    description: "ঢাকায় ২৪ ঘণ্টা, সারাদেশে ৩-৫ দিন",
-    color: "from-green-500/20 to-emerald-500/20",
-  },
-  {
-    icon: Clock,
-    title: "সহজ রিটার্ন",
-    description: "৭ দিনের মধ্যে রিটার্ন গ্যারান্টি",
-    color: "from-purple-500/20 to-violet-500/20",
-  },
-  {
-    icon: Headphones,
-    title: "২৪/৭ সাপোর্ট",
-    description: "যেকোনো সময় গ্রাহক সেবা",
-    color: "from-indigo-500/20 to-blue-500/20",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export const WhyChooseUs = () => {
+  const { t } = useLanguage();
+  const { getSetting } = useSiteSettings();
+
+  const features = [
+    {
+      icon: Shield,
+      title: t("১০০% অরিজিনাল", "100% Original"),
+      description: t("সব প্রোডাক্ট সরাসরি ব্র্যান্ড থেকে সংগ্রহ করা", "All products sourced directly from brands"),
+      color: "from-blue-500/20 to-cyan-500/20",
+    },
+    {
+      icon: Heart,
+      title: t("স্কিন-ফ্রেন্ডলি", "Skin-Friendly"),
+      description: t("বাংলাদেশি ত্বকের জন্য উপযোগী ফর্মুলা", "Formulas suitable for Bangladeshi skin"),
+      color: "from-pink-500/20 to-rose-500/20",
+    },
+    {
+      icon: Award,
+      title: t("প্রিমিয়াম কোয়ালিটি", "Premium Quality"),
+      description: t("বিশ্বমানের কসমেটিকস ও স্কিনকেয়ার", "World-class cosmetics & skincare"),
+      color: "from-amber-500/20 to-yellow-500/20",
+    },
+    {
+      icon: Truck,
+      title: t("দ্রুত ডেলিভারি", "Fast Delivery"),
+      description: t("ঢাকায় ২৪ ঘণ্টা, সারাদেশে ৩-৫ দিন", "24 hours in Dhaka, 3-5 days nationwide"),
+      color: "from-green-500/20 to-emerald-500/20",
+    },
+    {
+      icon: Clock,
+      title: t("সহজ রিটার্ন", "Easy Returns"),
+      description: t("৭ দিনের মধ্যে রিটার্ন গ্যারান্টি", "7-day return guarantee"),
+      color: "from-purple-500/20 to-violet-500/20",
+    },
+    {
+      icon: Headphones,
+      title: t("২৪/৭ সাপোর্ট", "24/7 Support"),
+      description: t("যেকোনো সময় গ্রাহক সেবা", "Customer service anytime"),
+      color: "from-indigo-500/20 to-blue-500/20",
+    },
+  ];
+
+  const badgeText = t(getSetting("why_badge_bn", "আমাদের বিশেষত্ব"), getSetting("why_badge_en", "Our Specialty"));
+  const titleText = t(getSetting("why_title_bn", "কেন Ameezuglow?"), getSetting("why_title_en", "Why Ameezuglow?"));
+  const descriptionText = t(getSetting("why_description_bn", "আমরা আপনার সৌন্দর্যের যত্ন নিতে প্রতিশ্রুতিবদ্ধ। বিশ্বাসযোগ্যতা ও মানের প্রতি আমাদের অঙ্গীকার অটুট।"), getSetting("why_description_en", "We are committed to caring for your beauty. Our commitment to trustworthiness and quality is unwavering."));
+
+  const stats = [
+    { value: getSetting("stat1_value", "৫০০০+"), label: t(getSetting("stat1_label_bn", "সন্তুষ্ট গ্রাহক"), getSetting("stat1_label_en", "Happy Customers")) },
+    { value: getSetting("stat2_value", "২০০+"), label: t(getSetting("stat2_label_bn", "প্রোডাক্ট"), getSetting("stat2_label_en", "Products")) },
+    { value: getSetting("stat3_value", "৯৯%"), label: t(getSetting("stat3_label_bn", "পজিটিভ রিভিউ"), getSetting("stat3_label_en", "Positive Reviews")) },
+    { value: getSetting("stat4_value", "২৪/৭"), label: t(getSetting("stat4_label_bn", "সাপোর্ট"), getSetting("stat4_label_en", "Support")) },
+  ];
+
   return (
     <section className="section-padding relative overflow-hidden">
       {/* Background */}
@@ -61,14 +77,13 @@ export const WhyChooseUs = () => {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
           >
             <Sparkles className="w-4 h-4" />
-            আমাদের বিশেষত্ব
+            {badgeText}
           </motion.span>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            কেন <span className="text-primary">Ameezuglow?</span>
+            {titleText}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            আমরা আপনার সৌন্দর্যের যত্ন নিতে প্রতিশ্রুতিবদ্ধ। বিশ্বাসযোগ্যতা ও মানের
-            প্রতি আমাদের অঙ্গীকার অটুট।
+            {descriptionText}
           </p>
         </motion.div>
 
@@ -118,12 +133,7 @@ export const WhyChooseUs = () => {
           viewport={{ once: true }}
           className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6"
         >
-          {[
-            { value: "৫০০০+", label: "সন্তুষ্ট গ্রাহক" },
-            { value: "২০০+", label: "প্রোডাক্ট" },
-            { value: "৯৯%", label: "পজিটিভ রিভিউ" },
-            { value: "২৪/৭", label: "সাপোর্ট" },
-          ].map((stat, index) => (
+          {stats.map((stat, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, scale: 0.9 }}

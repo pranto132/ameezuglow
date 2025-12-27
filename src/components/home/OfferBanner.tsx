@@ -3,13 +3,21 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Gift, Sparkles, Clock, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export const OfferBanner = () => {
-  // Countdown timer (example: 3 days from now)
+  const { t } = useLanguage();
+  const { getSetting } = useSiteSettings();
+
+  const initialDays = parseInt(getSetting("offer_countdown_days", "3")) || 3;
+  const initialHours = parseInt(getSetting("offer_countdown_hours", "12")) || 12;
+  const initialMinutes = parseInt(getSetting("offer_countdown_minutes", "45")) || 45;
+
   const [timeLeft, setTimeLeft] = useState({
-    days: 3,
-    hours: 12,
-    minutes: 45,
+    days: initialDays,
+    hours: initialHours,
+    minutes: initialMinutes,
     seconds: 30,
   });
 
@@ -43,6 +51,18 @@ export const OfferBanner = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  const badgeText = t(getSetting("offer_badge_bn", "সীমিত সময়ের অফার"), getSetting("offer_badge_en", "Limited Time Offer"));
+  const titleText = t(getSetting("offer_title_bn", "স্পেশাল বিউটি অফার!"), getSetting("offer_title_en", "Special Beauty Offer!"));
+  const descriptionText = t(getSetting("offer_description_bn", "আজই অর্ডার করুন এবং পান বিশেষ ছাড় ও আকর্ষণীয় গিফট। ৩০% পর্যন্ত ছাড়!"), getSetting("offer_description_en", "Order today and get special discounts & attractive gifts. Up to 30% off!"));
+  const btnText = t(getSetting("offer_btn_bn", "অফার সংগ্রহ করুন"), getSetting("offer_btn_en", "Grab Offer"));
+
+  const countdownLabels = [
+    { value: timeLeft.days, label: t("দিন", "Days") },
+    { value: timeLeft.hours, label: t("ঘণ্টা", "Hours") },
+    { value: timeLeft.minutes, label: t("মিনিট", "Minutes") },
+    { value: timeLeft.seconds, label: t("সেকেন্ড", "Seconds") },
+  ];
 
   return (
     <section className="py-16 md:py-20">
@@ -111,7 +131,7 @@ export const OfferBanner = () => {
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm mb-6"
                 >
                   <Gift className="w-5 h-5" />
-                  <span className="font-medium">সীমিত সময়ের অফার</span>
+                  <span className="font-medium">{badgeText}</span>
                 </motion.div>
 
                 <motion.h3
@@ -121,7 +141,7 @@ export const OfferBanner = () => {
                   transition={{ delay: 0.1 }}
                   className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
                 >
-                  স্পেশাল বিউটি অফার!
+                  {titleText}
                 </motion.h3>
 
                 <motion.p
@@ -131,7 +151,7 @@ export const OfferBanner = () => {
                   transition={{ delay: 0.2 }}
                   className="text-white/90 text-lg mb-6 max-w-md mx-auto lg:mx-0"
                 >
-                  আজই অর্ডার করুন এবং পান বিশেষ ছাড় ও আকর্ষণীয় গিফট। ৩০% পর্যন্ত ছাড়!
+                  {descriptionText}
                 </motion.p>
 
                 <motion.div
@@ -147,7 +167,7 @@ export const OfferBanner = () => {
                   >
                     <Link to="/shop?offers=true">
                       <Sparkles className="w-5 h-5 mr-2" />
-                      অফার সংগ্রহ করুন
+                      {btnText}
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </Button>
@@ -164,15 +184,10 @@ export const OfferBanner = () => {
               >
                 <div className="flex items-center gap-2 mb-4 justify-center">
                   <Clock className="w-5 h-5" />
-                  <span className="font-medium">অফার শেষ হতে বাকি</span>
+                  <span className="font-medium">{t("অফার শেষ হতে বাকি", "Offer ends in")}</span>
                 </div>
                 <div className="flex gap-3 md:gap-4">
-                  {[
-                    { value: timeLeft.days, label: "দিন" },
-                    { value: timeLeft.hours, label: "ঘণ্টা" },
-                    { value: timeLeft.minutes, label: "মিনিট" },
-                    { value: timeLeft.seconds, label: "সেকেন্ড" },
-                  ].map((item, index) => (
+                  {countdownLabels.map((item, index) => (
                     <motion.div
                       key={index}
                       whileHover={{ scale: 1.05 }}

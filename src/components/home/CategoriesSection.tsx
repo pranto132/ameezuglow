@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, Palette, Heart, Scissors, Gift, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const iconMap: Record<string, any> = {
   skincare: Sparkles,
@@ -21,7 +23,10 @@ const colorMap: Record<string, string> = {
 };
 
 export const CategoriesSection = () => {
-  const { data: categories, isLoading } = useQuery({
+  const { t, language } = useLanguage();
+  const { getSetting } = useSiteSettings();
+
+  const { data: categories } = useQuery({
     queryKey: ["categories-home"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -36,14 +41,18 @@ export const CategoriesSection = () => {
   });
 
   const defaultCategories = [
-    { name_bn: "স্কিনকেয়ার", slug: "skincare" },
-    { name_bn: "মেকআপ", slug: "makeup" },
-    { name_bn: "লিপ কেয়ার", slug: "lip-care" },
-    { name_bn: "হেয়ার কেয়ার", slug: "hair-care" },
-    { name_bn: "এক্সেসরিজ", slug: "accessories" },
+    { name_bn: "স্কিনকেয়ার", name: "Skincare", slug: "skincare" },
+    { name_bn: "মেকআপ", name: "Makeup", slug: "makeup" },
+    { name_bn: "লিপ কেয়ার", name: "Lip Care", slug: "lip-care" },
+    { name_bn: "হেয়ার কেয়ার", name: "Hair Care", slug: "hair-care" },
+    { name_bn: "এক্সেসরিজ", name: "Accessories", slug: "accessories" },
   ];
 
   const displayCategories = categories?.length ? categories : defaultCategories;
+
+  const badgeText = t(getSetting("categories_badge_bn", "ক্যাটাগরি"), getSetting("categories_badge_en", "Categories"));
+  const titleText = t(getSetting("categories_title_bn", "আমাদের কালেকশন"), getSetting("categories_title_en", "Our Collection"));
+  const descriptionText = t(getSetting("categories_description_bn", "আপনার প্রয়োজন অনুযায়ী সঠিক প্রোডাক্ট খুঁজে নিন"), getSetting("categories_description_en", "Find the right products for your needs"));
 
   return (
     <section className="section-padding bg-card relative overflow-hidden">
@@ -64,13 +73,13 @@ export const CategoriesSection = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
           >
-            ক্যাটাগরি
+            {badgeText}
           </motion.span>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            আমাদের <span className="text-primary">কালেকশন</span>
+            {titleText.split(" ")[0]} <span className="text-primary">{titleText.split(" ").slice(1).join(" ")}</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-            আপনার প্রয়োজন অনুযায়ী সঠিক প্রোডাক্ট খুঁজে নিন
+            {descriptionText}
           </p>
         </motion.div>
 
@@ -78,6 +87,7 @@ export const CategoriesSection = () => {
           {displayCategories.map((category: any, index: number) => {
             const Icon = iconMap[category.slug] || Sparkles;
             const gradientColor = colorMap[category.slug] || "from-primary/20 to-accent/20";
+            const categoryName = language === "bn" ? category.name_bn : (category.name || category.name_bn);
 
             return (
               <motion.div
@@ -106,7 +116,7 @@ export const CategoriesSection = () => {
 
                     {/* Title */}
                     <h3 className="relative z-10 font-semibold text-foreground text-center md:text-left group-hover:text-primary transition-colors text-lg">
-                      {category.name_bn}
+                      {categoryName}
                     </h3>
 
                     {/* Arrow */}
@@ -139,7 +149,7 @@ export const CategoriesSection = () => {
             to="/shop"
             className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
           >
-            সব ক্যাটাগরি দেখুন
+            {t("সব ক্যাটাগরি দেখুন", "View All Categories")}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>
