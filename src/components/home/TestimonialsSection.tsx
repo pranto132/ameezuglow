@@ -2,45 +2,62 @@ import { motion } from "framer-motion";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const reviews = [
   {
     id: 1,
     name: "সাবরিনা আক্তার",
+    name_en: "Sabrina Akter",
     location: "ঢাকা",
+    location_en: "Dhaka",
     text: "Ameezuglow থেকে স্কিনকেয়ার প্রোডাক্ট নিয়েছি। প্রোডাক্টের কোয়ালিটি অসাধারণ, স্কিনে দারুণ কাজ করেছে। রিয়েলি লাভড ইট!",
+    text_en: "Got skincare products from Ameezuglow. The product quality is amazing, worked great on my skin. Really loved it!",
     rating: 5,
     avatar: "SA",
   },
   {
     id: 2,
     name: "তানজিলা রহমান",
+    name_en: "Tanzila Rahman",
     location: "চট্টগ্রাম",
+    location_en: "Chittagong",
     text: "দ্রুত ডেলিভারি ও অরিজিনাল প্রোডাক্ট। প্যাকেজিংও অনেক সুন্দর ছিল। Ameezuglow আমার ফেভারিট বিউটি শপ।",
+    text_en: "Fast delivery and original products. The packaging was also very nice. Ameezuglow is my favorite beauty shop.",
     rating: 5,
     avatar: "TR",
   },
   {
     id: 3,
     name: "ফারজানা ইসলাম",
+    name_en: "Farzana Islam",
     location: "সিলেট",
+    location_en: "Sylhet",
     text: "অনেক দিন ধরে অর্ডার করছি। প্রতিবারই সন্তুষ্ট হয়েছি। কাস্টমার সার্ভিসও চমৎকার। হাইলি রিকমেন্ডেড!",
+    text_en: "Been ordering for a long time. Satisfied every time. Customer service is also excellent. Highly recommended!",
     rating: 5,
     avatar: "FI",
   },
   {
     id: 4,
     name: "নুসরাত জাহান",
+    name_en: "Nusrat Jahan",
     location: "রাজশাহী",
+    location_en: "Rajshahi",
     text: "প্রথমবার অর্ডার করলাম এবং অভিজ্ঞতা দারুণ ছিল। প্রোডাক্ট একদম অরিজিনাল এবং দাম ও রিজনেবল।",
+    text_en: "First time ordering and the experience was great. Products are completely original and prices are reasonable.",
     rating: 5,
     avatar: "NJ",
   },
   {
     id: 5,
     name: "মাহিয়া রহমান",
+    name_en: "Mahiya Rahman",
     location: "খুলনা",
+    location_en: "Khulna",
     text: "মেকআপ কালেকশন অসাধারণ! সব প্রোডাক্ট জেনুইন এবং প্যাকেজিং খুবই সুন্দর। আবারও অর্ডার করব।",
+    text_en: "Makeup collection is amazing! All products are genuine and packaging is very nice. Will order again.",
     rating: 5,
     avatar: "MR",
   },
@@ -48,6 +65,8 @@ const reviews = [
 
 export const TestimonialsSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { t, language } = useLanguage();
+  const { getSetting } = useSiteSettings();
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % reviews.length);
@@ -56,6 +75,10 @@ export const TestimonialsSection = () => {
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
   };
+
+  const badgeText = t(getSetting("testimonials_badge_bn", "গ্রাহকদের রিভিউ"), getSetting("testimonials_badge_en", "Customer Reviews"));
+  const titleText = t(getSetting("testimonials_title_bn", "আমাদের সন্তুষ্ট গ্রাহক"), getSetting("testimonials_title_en", "Our Satisfied Customers"));
+  const descriptionText = t(getSetting("testimonials_description_bn", "হাজার হাজার গ্রাহক আমাদের উপর আস্থা রাখেন"), getSetting("testimonials_description_en", "Thousands of customers trust us"));
 
   return (
     <section className="section-padding bg-card relative overflow-hidden">
@@ -77,13 +100,13 @@ export const TestimonialsSection = () => {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
           >
             <Star className="w-4 h-4 fill-current" />
-            গ্রাহকদের রিভিউ
+            {badgeText}
           </motion.span>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            আমাদের <span className="text-primary">সন্তুষ্ট গ্রাহক</span>
+            {titleText.split(" ")[0]} <span className="text-primary">{titleText.split(" ").slice(1).join(" ")}</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-            হাজার হাজার গ্রাহক আমাদের উপর আস্থা রাখেন
+            {descriptionText}
           </p>
         </motion.div>
 
@@ -108,7 +131,7 @@ export const TestimonialsSection = () => {
 
                 {/* Review Text */}
                 <p className="text-foreground/90 leading-relaxed mb-6 text-lg">
-                  "{review.text}"
+                  "{language === "bn" ? review.text : review.text_en}"
                 </p>
 
                 {/* Rating */}
@@ -124,8 +147,8 @@ export const TestimonialsSection = () => {
                     {review.avatar}
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">{review.name}</p>
-                    <p className="text-sm text-muted-foreground">{review.location}</p>
+                    <p className="font-semibold text-foreground">{language === "bn" ? review.name : review.name_en}</p>
+                    <p className="text-sm text-muted-foreground">{language === "bn" ? review.location : review.location_en}</p>
                   </div>
                 </div>
               </motion.div>
@@ -145,7 +168,7 @@ export const TestimonialsSection = () => {
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
               <Quote className="w-5 h-5 text-primary" />
             </div>
-            <p className="text-foreground/90 mb-4">{reviews[currentIndex].text}</p>
+            <p className="text-foreground/90 mb-4">{language === "bn" ? reviews[currentIndex].text : reviews[currentIndex].text_en}</p>
             <div className="flex items-center gap-1 mb-4">
               {[...Array(reviews[currentIndex].rating)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 fill-primary text-primary" />
@@ -156,8 +179,8 @@ export const TestimonialsSection = () => {
                 {reviews[currentIndex].avatar}
               </div>
               <div>
-                <p className="font-semibold text-foreground">{reviews[currentIndex].name}</p>
-                <p className="text-xs text-muted-foreground">{reviews[currentIndex].location}</p>
+                <p className="font-semibold text-foreground">{language === "bn" ? reviews[currentIndex].name : reviews[currentIndex].name_en}</p>
+                <p className="text-xs text-muted-foreground">{language === "bn" ? reviews[currentIndex].location : reviews[currentIndex].location_en}</p>
               </div>
             </div>
           </motion.div>
@@ -202,7 +225,7 @@ export const TestimonialsSection = () => {
           className="text-center mt-12"
         >
           <p className="text-muted-foreground mb-4">
-            আপনিও আমাদের পরিবারের সদস্য হোন
+            {t("আপনিও আমাদের পরিবারের সদস্য হোন", "Join our family today")}
           </p>
           <div className="flex items-center justify-center gap-4">
             <div className="flex -space-x-2">
@@ -219,7 +242,7 @@ export const TestimonialsSection = () => {
               </div>
             </div>
             <p className="text-sm text-foreground font-medium">
-              ৫,০০০+ সন্তুষ্ট গ্রাহক
+              {t("৫,০০০+ সন্তুষ্ট গ্রাহক", "5,000+ Happy Customers")}
             </p>
           </div>
         </motion.div>

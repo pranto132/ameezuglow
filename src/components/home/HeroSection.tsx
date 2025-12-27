@@ -3,14 +3,34 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-cosmetics.jpg";
 import { Shield, Truck, CreditCard, Star, Sparkles, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export const HeroSection = () => {
+  const { t } = useLanguage();
+  const { getSetting } = useSiteSettings();
+
   const trustBadges = [
-    { icon: Shield, text: "১০০% অরিজিনাল" },
-    { icon: CreditCard, text: "ক্যাশ অন ডেলিভারি" },
-    { icon: Truck, text: "সারা দেশে ডেলিভারি" },
-    { icon: Star, text: "৫০০০+ সন্তুষ্ট গ্রাহক" },
+    { icon: Shield, text: t(getSetting("trust_badge1_bn", "১০০% অরিজিনাল"), getSetting("trust_badge1_en", "100% Original")) },
+    { icon: CreditCard, text: t(getSetting("trust_badge2_bn", "ক্যাশ অন ডেলিভারি"), getSetting("trust_badge2_en", "Cash on Delivery")) },
+    { icon: Truck, text: t(getSetting("trust_badge3_bn", "সারা দেশে ডেলিভারি"), getSetting("trust_badge3_en", "Nationwide Delivery")) },
+    { icon: Star, text: t(getSetting("trust_badge4_bn", "৫০০০+ সন্তুষ্ট গ্রাহক"), getSetting("trust_badge4_en", "5000+ Happy Customers")) },
   ];
+
+  const heroImg = getSetting("hero_image", "") || heroImage;
+  const badgeText = t(getSetting("hero_badge_bn", "প্রিমিয়াম বিউটি কালেকশন"), getSetting("hero_badge_en", "Premium Beauty Collection"));
+  const titleText = t(getSetting("hero_title_bn", "আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো"), getSetting("hero_title_en", "Bring New Light to Your Natural Glow"));
+  const highlightText = t(getSetting("hero_highlight_bn", "গ্লোকে"), getSetting("hero_highlight_en", "Glow"));
+  const descriptionText = t(getSetting("hero_description_bn", "Ameezuglow নিয়ে এসেছে প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট, যা আপনার সৌন্দর্যকে করবে আরও উজ্জ্বল ও আত্মবিশ্বাসী।"), getSetting("hero_description_en", "Ameezuglow brings premium cosmetics & skincare products that will make your beauty more radiant and confident."));
+  const btn1Text = t(getSetting("hero_btn1_bn", "এখনই শপ করুন"), getSetting("hero_btn1_en", "Shop Now"));
+  const btn2Text = t(getSetting("hero_btn2_bn", "আজকের অফার"), getSetting("hero_btn2_en", "Today's Offers"));
+  const discountText = getSetting("hero_discount_text", "৩০%");
+  const discountLabel = t(getSetting("hero_discount_label_bn", "পর্যন্ত ছাড়"), getSetting("hero_discount_label_en", "up to off"));
+  const reviewCount = getSetting("hero_review_count", "৫,০০০+");
+  const reviewLabel = t(getSetting("hero_review_label_bn", "সন্তুষ্ট গ্রাহক"), getSetting("hero_review_label_en", "Happy Customers"));
+
+  // Split title by highlight word
+  const titleParts = titleText.split(highlightText);
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
@@ -84,35 +104,38 @@ export const HeroSection = () => {
             >
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">
-                প্রিমিয়াম বিউটি কালেকশন
+                {badgeText}
               </span>
             </motion.div>
 
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-[1.1]">
-              আপনার প্রাকৃতিক{" "}
-              <span className="relative">
-                <span className="relative z-10 bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
-                  গ্লোকে
-                </span>
-                <motion.span
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.8, duration: 0.5 }}
-                  className="absolute bottom-2 left-0 right-0 h-3 bg-primary/20 -z-0 origin-left"
-                />
-              </span>{" "}
-              দিন নতুন আলো
+              {titleParts[0]}
+              {titleParts.length > 1 && (
+                <>
+                  <span className="relative">
+                    <span className="relative z-10 bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
+                      {highlightText}
+                    </span>
+                    <motion.span
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 0.8, duration: 0.5 }}
+                      className="absolute bottom-2 left-0 right-0 h-3 bg-primary/20 -z-0 origin-left"
+                    />
+                  </span>
+                  {titleParts[1]}
+                </>
+              )}
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Ameezuglow নিয়ে এসেছে প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট, যা
-              আপনার সৌন্দর্যকে করবে আরও উজ্জ্বল ও আত্মবিশ্বাসী।
+              {descriptionText}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button asChild size="lg" className="btn-primary text-lg h-14 px-8 group">
                 <Link to="/shop">
-                  এখনই শপ করুন
+                  {btn1Text}
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
@@ -124,7 +147,7 @@ export const HeroSection = () => {
               >
                 <Link to="/shop?offers=true">
                   <span className="mr-2">🔥</span>
-                  আজকের অফার
+                  {btn2Text}
                 </Link>
               </Button>
             </div>
@@ -165,7 +188,7 @@ export const HeroSection = () => {
                 className="relative rounded-3xl overflow-hidden shadow-elevated"
               >
                 <img
-                  src={heroImage}
+                  src={heroImg}
                   alt="Ameezuglow Premium Cosmetics"
                   className="w-full h-auto object-cover aspect-[4/5] lg:aspect-square"
                 />
@@ -186,12 +209,12 @@ export const HeroSection = () => {
                   className="bg-card p-4 md:p-5 rounded-2xl shadow-card border border-border/50"
                 >
                   <p className="text-sm font-medium text-primary flex items-center gap-1">
-                    <span className="text-lg">🎉</span> বিশেষ ছাড়
+                    <span className="text-lg">🎉</span> {t("বিশেষ ছাড়", "Special Discount")}
                   </p>
                   <p className="text-3xl md:text-4xl font-bold text-foreground">
-                    ৩০%
+                    {discountText}
                   </p>
-                  <p className="text-xs text-muted-foreground">পর্যন্ত ছাড়</p>
+                  <p className="text-xs text-muted-foreground">{discountLabel}</p>
                 </motion.div>
               </motion.div>
 
@@ -213,8 +236,8 @@ export const HeroSection = () => {
                       <Star key={i} className="w-4 h-4 fill-primary text-primary" />
                     ))}
                   </div>
-                  <p className="text-sm font-medium text-foreground">৫,০০০+</p>
-                  <p className="text-xs text-muted-foreground">সন্তুষ্ট গ্রাহক</p>
+                  <p className="text-sm font-medium text-foreground">{reviewCount}</p>
+                  <p className="text-xs text-muted-foreground">{reviewLabel}</p>
                 </motion.div>
               </motion.div>
             </div>
