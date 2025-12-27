@@ -26,6 +26,7 @@ import {
   Users,
   Image,
   Shield,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +41,7 @@ const menuItems = [
 ];
 
 const settingsItems = [
+  { title: "হোমপেজ", url: "/admin/homepage", icon: Home },
   { title: "পেমেন্ট মেথড", url: "/admin/payments", icon: CreditCard },
   { title: "কুরিয়ার সার্ভিস", url: "/admin/couriers", icon: Truck },
   { title: "ব্যানার", url: "/admin/banners", icon: Image },

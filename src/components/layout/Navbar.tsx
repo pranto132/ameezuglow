@@ -1,11 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ShoppingBag, Heart, Menu, X, Search, User, ChevronDown, LogOut } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, User, ChevronDown, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useCartStore, useWishlistStore } from "@/lib/store";
+import { useCartStore } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,18 +24,18 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const itemCount = useCartStore((state) => state.getItemCount());
-  const wishlistCount = useWishlistStore((state) => state.items.length);
 
   const handleSignOut = async () => {
     try {
       setIsMenuOpen(false); // Close menu first
       await signOut();
-      toast.success("লগআউট সফল!");
+      toast.success(t("লগআউট সফল!", "Logged out successfully!"));
       navigate("/");
     } catch (error) {
       console.error("Sign out error:", error);
-      toast.error("লগআউট করতে সমস্যা হয়েছে");
+      toast.error(t("লগআউট করতে সমস্যা হয়েছে", "Failed to log out"));
     }
   };
 
@@ -50,16 +52,16 @@ export const Navbar = () => {
   }, [location]);
 
   const navLinks = [
-    { href: "/", label: "হোম" },
-    { href: "/shop", label: "শপ" },
-    { href: "/track-order", label: "ট্র্যাক অর্ডার" },
+    { href: "/", label: t("হোম", "Home") },
+    { href: "/shop", label: t("শপ", "Shop") },
+    { href: "/track-order", label: t("ট্র্যাক অর্ডার", "Track Order") },
   ];
 
   const categoryLinks = [
-    { href: "/shop?category=skincare", label: "স্কিনকেয়ার" },
-    { href: "/shop?category=makeup", label: "মেকআপ" },
-    { href: "/shop?category=lip-care", label: "লিপ কেয়ার" },
-    { href: "/shop?category=hair-care", label: "হেয়ার কেয়ার" },
+    { href: "/shop?category=skincare", label: t("স্কিনকেয়ার", "Skincare") },
+    { href: "/shop?category=makeup", label: t("মেকআপ", "Makeup") },
+    { href: "/shop?category=lip-care", label: t("লিপ কেয়ার", "Lip Care") },
+    { href: "/shop?category=hair-care", label: t("হেয়ার কেয়ার", "Hair Care") },
   ];
 
   return (
@@ -141,6 +143,9 @@ export const Navbar = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-2">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+              
               {/* Search Toggle */}
               <motion.button
                 whileTap={{ scale: 0.95 }}
@@ -149,23 +154,6 @@ export const Navbar = () => {
               >
                 <Search className="w-5 h-5 text-foreground/70" />
               </motion.button>
-
-              {/* Wishlist */}
-              <Link
-                to="/wishlist"
-                className="p-2.5 hover:bg-muted rounded-xl transition-colors relative"
-              >
-                <Heart className="w-5 h-5 text-foreground/70" />
-                {wishlistCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold"
-                  >
-                    {wishlistCount}
-                  </motion.span>
-                )}
-              </Link>
 
               {/* Cart */}
               <Link
