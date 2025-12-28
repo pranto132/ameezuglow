@@ -39,6 +39,7 @@ const Checkout = () => {
     notes: "",
     payment_method: "cod",
     transaction_id: "",
+    sender_number: "",
     delivery_area: "inside_dhaka" as "inside_dhaka" | "outside_dhaka",
   });
 
@@ -194,6 +195,7 @@ const Checkout = () => {
           notes: validated.notes || null,
           payment_method: validated.payment_method,
           transaction_id: validated.transaction_id || null,
+          sender_number: formData.sender_number || null,
           subtotal,
           discount,
           coupon_code: appliedCoupon?.code || null,
@@ -486,17 +488,32 @@ const Checkout = () => {
                     ))}
                   </RadioGroup>
 
-                  {/* Transaction ID for mobile payments */}
+                  {/* Transaction ID and Sender Number for mobile payments */}
                   {selectedPaymentMethod && selectedPaymentMethod.type !== "cod" && (
-                    <div className="mt-4">
-                      <Label htmlFor="transaction_id">Transaction ID</Label>
-                      <Input
-                        id="transaction_id"
-                        name="transaction_id"
-                        value={formData.transaction_id}
-                        onChange={handleChange}
-                        placeholder={t("আপনার Transaction ID দিন", "Enter your Transaction ID")}
-                      />
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <Label htmlFor="transaction_id">Transaction ID *</Label>
+                        <Input
+                          id="transaction_id"
+                          name="transaction_id"
+                          value={formData.transaction_id}
+                          onChange={handleChange}
+                          placeholder={t("আপনার Transaction ID দিন", "Enter your Transaction ID")}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="sender_number">{t("সেন্ডার মোবাইল নম্বর", "Sender Mobile Number")} *</Label>
+                        <Input
+                          id="sender_number"
+                          name="sender_number"
+                          value={formData.sender_number}
+                          onChange={handleChange}
+                          placeholder={t("যে নম্বর থেকে পেমেন্ট করেছেন", "Number from which payment was made")}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("যে মোবাইল নম্বর থেকে পেমেন্ট পাঠিয়েছেন সেটি দিন", "Enter the mobile number from which you sent the payment")}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </motion.div>
