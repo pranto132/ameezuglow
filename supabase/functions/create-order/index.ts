@@ -21,6 +21,7 @@ const CreateOrderSchema = z.object({
   notes: z.string().max(1000).optional().nullable(),
   payment_method: z.enum(["cod", "bkash", "nagad", "rocket", "bank"]),
   transaction_id: z.string().max(100).optional().nullable(),
+  sender_number: z.string().max(20).optional().nullable(),
   subtotal: z.number().positive().max(10000000),
   discount: z.number().min(0).max(10000000).optional().default(0),
   coupon_code: z.string().max(50).optional().nullable(),
@@ -105,6 +106,7 @@ Deno.serve(async (req) => {
         total: body.total,
         payment_method: body.payment_method,
         transaction_id: body.transaction_id || null,
+        sender_number: body.sender_number || null,
         payment_status: body.payment_method === "cod" ? "pending" : "awaiting_verification",
         order_status: "pending",
       })

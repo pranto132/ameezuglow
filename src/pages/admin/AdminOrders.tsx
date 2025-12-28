@@ -652,11 +652,18 @@ const AdminOrders = () => {
 
               {/* Payment & Status */}
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">পেমেন্ট মেথড</p>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground mb-1">পেমেন্ট তথ্য</p>
                   <p className="font-medium capitalize">{selectedOrder.payment_method}</p>
                   {selectedOrder.transaction_id && (
-                    <p className="text-sm">TrxID: {selectedOrder.transaction_id}</p>
+                    <p className="text-sm mt-1">
+                      <strong>Transaction ID:</strong> {selectedOrder.transaction_id}
+                    </p>
+                  )}
+                  {selectedOrder.sender_number && (
+                    <p className="text-sm mt-1">
+                      <strong>সেন্ডার নম্বর:</strong> {selectedOrder.sender_number}
+                    </p>
                   )}
                 </div>
                 <div>
