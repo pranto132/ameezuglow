@@ -475,7 +475,15 @@ const AdminOrders = () => {
                   </TableCell>
                   <TableCell className="font-bold">৳{Number(order.total).toLocaleString()}</TableCell>
                   <TableCell>
-                    <span className="text-sm capitalize">{order.payment_method}</span>
+                    <div>
+                      <span className="text-sm capitalize font-medium">{order.payment_method}</span>
+                      {order.transaction_id && (
+                        <p className="text-xs text-muted-foreground">TrxID: {order.transaction_id}</p>
+                      )}
+                      {order.sender_number && (
+                        <p className="text-xs text-primary">সেন্ডার: {order.sender_number}</p>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {order.courier_name ? (
