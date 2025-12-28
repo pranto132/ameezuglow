@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSidebar } from "./AdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -83,7 +84,12 @@ export const AdminLayout = () => {
             <SidebarTrigger className="mr-4">
               <Menu className="w-5 h-5" />
             </SidebarTrigger>
-            <h1 className="font-display text-xl font-bold text-primary">Ameezuglow Admin</h1>
+            <div className="flex items-center gap-3 min-w-0">
+              <h1 className="font-display text-xl font-bold text-primary">Ameezuglow Admin</h1>
+              <Badge variant="secondary" className="truncate max-w-[45vw]">
+                {user.email}
+              </Badge>
+            </div>
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
@@ -93,3 +99,4 @@ export const AdminLayout = () => {
     </SidebarProvider>
   );
 };
+
