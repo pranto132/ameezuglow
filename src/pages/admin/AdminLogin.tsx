@@ -17,7 +17,7 @@ const loginSchema = z.object({
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { signIn, isLoading: authLoading } = useAuth();
+  const { signIn, signOut, isLoading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -30,20 +30,35 @@ const AdminLogin = () => {
 
     try {
       const validated = loginSchema.parse(formData);
-      
+
       const { error } = await signIn(validated.email, validated.password);
       if (error) {
         toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
-      } else {
-        // Ensure the first-ever user can bootstrap admin access (only works if no admin exists)
-        const { error: bootstrapError } = await supabase.rpc("bootstrap_admin");
-        if (bootstrapError) {
-          console.log("bootstrap_admin skipped/failed:", bootstrapError.message);
-        }
-
-        toast.success("লগইন সফল!");
-        navigate("/admin");
+        return;
       }
+
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        await signOut();
+        toast.error("লগইন যাচাই করা যায়নি, আবার চেষ্টা করুন");
+        return;
+      }
+
+      // Server-side role check (security definer function)
+      const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+        _user_id: userData.user.id,
+        _role: "admin",
+      });
+
+      if (roleError || !isAdmin) {
+        await signOut();
+        toast.error("আপনার অ্যাডমিন অ্যাক্সেস নেই");
+        navigate("/", { replace: true });
+        return;
+      }
+
+      toast.success("অ্যাডমিন লগইন সফল!");
+      navigate("/admin", { replace: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
