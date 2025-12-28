@@ -19,10 +19,9 @@ export const AdminLayout = () => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  // For now, allow any authenticated user. In production, check isAdmin
-  // if (!isAdmin) {
-  //   return <Navigate to="/admin/login" replace />;
-  // }
+  if (!isAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
 
   return (
     <SidebarProvider>
