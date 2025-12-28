@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useCartStore, useWishlistStore } from "@/lib/store";
+import { useCartStore } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { ShoppingBag, Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ChevronLeft, Zap } from "lucide-react";
+import { ShoppingBag, Minus, Plus, Star, Truck, Shield, RotateCcw, ChevronLeft, Zap } from "lucide-react";
 import { useState } from "react";
 
 const ProductDetail = () => {
@@ -16,7 +16,6 @@ const ProductDetail = () => {
   const { t } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
-  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", slug],
@@ -79,7 +78,6 @@ const ProductDetail = () => {
     );
   }
 
-  const inWishlist = isInWishlist(product.id);
   const discountPercent = product.sale_price
     ? Math.round(((product.price - product.sale_price) / product.price) * 100)
     : 0;
@@ -112,16 +110,6 @@ const ProductDetail = () => {
     }
     // Navigate directly to checkout
     navigate("/checkout");
-  };
-
-  const handleWishlist = () => {
-    if (inWishlist) {
-      removeFromWishlist(product.id);
-      toast.info(t("উইশলিস্ট থেকে সরানো হয়েছে", "Removed from wishlist"));
-    } else {
-      addToWishlist(product.id);
-      toast.success(t("উইশলিস্টে যুক্ত হয়েছে!", "Added to wishlist!"));
-    }
   };
 
   const category = product.categories as { name: string; name_bn: string; slug: string } | null;
@@ -254,15 +242,6 @@ const ProductDetail = () => {
                 >
                   <ShoppingBag className="w-5 h-5 mr-2" />
                   {t("কার্টে যুক্ত করুন", "Add to Cart")}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleWishlist}
-                  className={inWishlist ? "border-primary text-primary" : ""}
-                >
-                  <Heart className={`w-5 h-5 ${inWishlist ? "fill-current" : ""}`} />
                 </Button>
               </div>
 
