@@ -19,47 +19,66 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRoleLoading, setIsRoleLoading] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Defer role check
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Always reset admin flag on any auth change to avoid stale admin state
+      setIsAdmin(false);
+
+      // Defer role check
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        setIsRoleLoading(true);
+        setTimeout(() => {
+          checkAdminRole(session.user.id);
+        }, 0);
+      } else {
+        setIsRoleLoading(false);
       }
-      setIsLoading(false);
     });
+
+    // THEN check for existing session
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      // Reset admin flag before verifying
+      setIsAdmin(false);
+
+      if (session?.user) {
+        setIsRoleLoading(true);
+        await checkAdminRole(session.user.id);
+      }
+
+      setIsLoading(false);
+    })();
 
     return () => subscription.unsubscribe();
   }, []);
 
   const checkAdminRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    
-    setIsAdmin(!!data && !error);
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      setIsAdmin(!!data && !error);
+    } finally {
+      setIsRoleLoading(false);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -89,7 +108,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        isAdmin,
+        isLoading: isLoading || isRoleLoading,
+        signIn,
+        signUp,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
