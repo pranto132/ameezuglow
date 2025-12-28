@@ -24,6 +24,13 @@ const statusOptions = [
   { value: "cancelled", label: "ক্যান্সেলড", color: "bg-red-100 text-red-700" },
 ];
 
+const paymentStatusOptions = [
+  { value: "pending", label: "পেন্ডিং", color: "bg-yellow-100 text-yellow-700" },
+  { value: "awaiting_verification", label: "ভেরিফাই অপেক্ষায়", color: "bg-orange-100 text-orange-700" },
+  { value: "verified", label: "ভেরিফাইড", color: "bg-green-100 text-green-700" },
+  { value: "rejected", label: "প্রত্যাখ্যাত", color: "bg-red-100 text-red-700" },
+];
+
 const AdminOrders = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -146,6 +153,23 @@ const AdminOrders = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       toast.success("অর্ডার স্ট্যাটাস আপডেট হয়েছে");
+    },
+  });
+
+  const updatePaymentStatusMutation = useMutation({
+    mutationFn: async ({ id, payment_status }: { id: string; payment_status: string }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ payment_status })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast.success("পেমেন্ট স্ট্যাটাস আপডেট হয়েছে");
+    },
+    onError: () => {
+      toast.error("পেমেন্ট স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে");
     },
   });
 
@@ -297,6 +321,14 @@ const AdminOrders = () => {
 
   const getStatusLabel = (status: string) => {
     return statusOptions.find((s) => s.value === status)?.label || status;
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    return paymentStatusOptions.find((s) => s.value === status)?.color || "bg-gray-100 text-gray-700";
+  };
+
+  const getPaymentStatusLabel = (status: string) => {
+    return paymentStatusOptions.find((s) => s.value === status)?.label || status;
   };
 
   return (
@@ -451,7 +483,7 @@ const AdminOrders = () => {
                 <TableHead>গ্রাহক</TableHead>
                 <TableHead>মোট</TableHead>
                 <TableHead>পেমেন্ট</TableHead>
-                <TableHead>কুরিয়ার</TableHead>
+                <TableHead>পেমেন্ট স্ট্যাটাস</TableHead>
                 <TableHead>স্ট্যাটাস</TableHead>
                 <TableHead>তারিখ</TableHead>
                 <TableHead className="text-right">অ্যাকশন</TableHead>
@@ -484,6 +516,25 @@ const AdminOrders = () => {
                         <p className="text-xs text-primary">সেন্ডার: {order.sender_number}</p>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={order.payment_status || "pending"}
+                      onValueChange={(value) =>
+                        updatePaymentStatusMutation.mutate({ id: order.id, payment_status: value })
+                      }
+                    >
+                      <SelectTrigger className={`w-36 h-8 text-xs ${getPaymentStatusColor(order.payment_status || "pending")}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentStatusOptions.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     {order.courier_name ? (
@@ -673,6 +724,26 @@ const AdminOrders = () => {
                       <strong>সেন্ডার নম্বর:</strong> {selectedOrder.sender_number}
                     </p>
                   )}
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-sm text-muted-foreground mb-2">পেমেন্ট স্ট্যাটাস</p>
+                    <Select
+                      value={selectedOrder.payment_status || "pending"}
+                      onValueChange={(value) =>
+                        updatePaymentStatusMutation.mutate({ id: selectedOrder.id, payment_status: value })
+                      }
+                    >
+                      <SelectTrigger className={`w-full ${getPaymentStatusColor(selectedOrder.payment_status || "pending")}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentStatusOptions.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">অর্ডার স্ট্যাটাস</p>
