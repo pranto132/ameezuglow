@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Heart, Eye } from "lucide-react";
-import { useCartStore, useWishlistStore } from "@/lib/store";
+import { ShoppingBag, Eye } from "lucide-react";
+import { useCartStore } from "@/lib/store";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -24,8 +24,6 @@ interface ProductCardProps {
 export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const { t } = useLanguage();
   const addItem = useCartStore((state) => state.addItem);
-  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
-  const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,18 +37,6 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       image: product.images?.[0],
     });
     toast.success(t("কার্টে যুক্ত হয়েছে!", "Added to cart!"));
-  };
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (inWishlist) {
-      removeFromWishlist(product.id);
-      toast.info(t("উইশলিস্ট থেকে সরানো হয়েছে", "Removed from wishlist"));
-    } else {
-      addToWishlist(product.id);
-      toast.success(t("উইশলিস্টে যুক্ত হয়েছে!", "Added to wishlist!"));
-    }
   };
 
   const discountPercent = product.sale_price
@@ -88,18 +74,6 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
           {/* Action Buttons */}
           <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleWishlist}
-              className={`p-2.5 rounded-full shadow-md transition-all ${
-                inWishlist 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-card/90 backdrop-blur-sm hover:bg-card"
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${inWishlist ? "fill-current" : ""}`} />
-            </motion.button>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
