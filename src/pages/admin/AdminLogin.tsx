@@ -31,6 +31,9 @@ const AdminLogin = () => {
     try {
       const validated = loginSchema.parse(formData);
 
+      // Ensure we're not reusing a previous (possibly admin) session
+      await signOut();
+
       const { error } = await signIn(validated.email, validated.password);
       if (error) {
         toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
@@ -53,7 +56,7 @@ const AdminLogin = () => {
       if (roleError || !isAdmin) {
         await signOut();
         toast.error("আপনার অ্যাডমিন অ্যাক্সেস নেই");
-        navigate("/", { replace: true });
+        navigate("/admin/login", { replace: true });
         return;
       }
 
