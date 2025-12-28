@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { useCartStore, useWishlistStore } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { ShoppingBag, Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ChevronLeft } from "lucide-react";
+import { ShoppingBag, Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ChevronLeft, Zap } from "lucide-react";
 import { useState } from "react";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
@@ -95,6 +96,22 @@ const ProductDetail = () => {
       });
     }
     toast.success(t(`${quantity}টি প্রোডাক্ট কার্টে যুক্ত হয়েছে!`, `${quantity} item(s) added to cart!`));
+  };
+
+  const handleBuyNow = () => {
+    // Add items to cart first
+    for (let i = 0; i < quantity; i++) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        name_bn: product.name_bn,
+        price: product.price,
+        sale_price: product.sale_price || undefined,
+        image: product.images?.[0],
+      });
+    }
+    // Navigate directly to checkout
+    navigate("/checkout");
   };
 
   const handleWishlist = () => {
@@ -248,6 +265,18 @@ const ProductDetail = () => {
                   <Heart className={`w-5 h-5 ${inWishlist ? "fill-current" : ""}`} />
                 </Button>
               </div>
+
+              {/* Buy Now Button */}
+              <Button
+                onClick={handleBuyNow}
+                disabled={product.stock === 0}
+                variant="outline"
+                className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                size="lg"
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                {t("এখনই কিনুন", "Buy Now")}
+              </Button>
 
               {/* Trust Badges */}
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
