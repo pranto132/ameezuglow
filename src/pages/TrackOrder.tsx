@@ -13,7 +13,8 @@ import { Link } from "react-router-dom";
 const TrackOrder = () => {
   const { t } = useLanguage();
   const [orderNumber, setOrderNumber] = useState("");
-  const [searchedOrderNumber, setSearchedOrderNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [searchParams, setSearchParams] = useState<{ orderNumber: string; phoneNumber: string } | null>(null);
 
   const statusSteps = [
     { value: "pending", label: t("পেন্ডিং", "Pending"), icon: Clock, color: "text-orange-500" },
@@ -24,20 +25,22 @@ const TrackOrder = () => {
   ];
 
   const { data: order, isLoading, error } = useQuery({
-    queryKey: ["track-order", searchedOrderNumber],
+    queryKey: ["track-order", searchParams?.orderNumber, searchParams?.phoneNumber],
     queryFn: async () => {
-      if (!searchedOrderNumber) return null;
+      if (!searchParams) return null;
       
+      // Query with both order number AND phone number for security
       const { data, error } = await supabase
         .from("orders")
         .select("*")
-        .eq("order_number", searchedOrderNumber)
+        .eq("order_number", searchParams.orderNumber)
+        .eq("customer_phone", searchParams.phoneNumber)
         .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!searchedOrderNumber,
+    enabled: !!searchParams,
   });
 
   const { data: orderItems } = useQuery({
@@ -56,8 +59,15 @@ const TrackOrder = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (orderNumber.trim()) {
-      setSearchedOrderNumber(orderNumber.trim());
+    const trimmedOrderNumber = orderNumber.trim();
+    const trimmedPhone = phoneNumber.trim();
+    
+    if (trimmedOrderNumber && trimmedPhone) {
+      // Validate phone format (11 digits starting with 0)
+      if (!/^0\d{10}$/.test(trimmedPhone)) {
+        return; // Invalid phone format
+      }
+      setSearchParams({ orderNumber: trimmedOrderNumber, phoneNumber: trimmedPhone });
     }
   };
 
@@ -85,7 +95,7 @@ const TrackOrder = () => {
               {t("অর্ডার ট্র্যাক করুন", "Track Your Order")}
             </h1>
             <p className="text-muted-foreground">
-              {t("আপনার অর্ডার নম্বর দিয়ে বর্তমান অবস্থা দেখুন", "Enter your order number to check the current status")}
+              {t("আপনার অর্ডার নম্বর ও ফোন নম্বর দিয়ে বর্তমান অবস্থা দেখুন", "Enter your order number and phone number to check the current status")}
             </p>
           </motion.div>
 
@@ -96,8 +106,8 @@ const TrackOrder = () => {
             transition={{ delay: 0.1 }}
             className="max-w-xl mx-auto mb-12"
           >
-            <form onSubmit={handleSearch} className="flex gap-3">
-              <div className="relative flex-1">
+            <form onSubmit={handleSearch} className="space-y-4">
+              <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   value={orderNumber}
@@ -106,7 +116,21 @@ const TrackOrder = () => {
                   className="pl-12 h-14 text-lg rounded-xl border-border/50"
                 />
               </div>
-              <Button type="submit" className="btn-primary h-14 px-8" disabled={isLoading}>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder={t("ফোন নম্বর লিখুন (যেমন: 01712345678)", "Enter phone number (e.g., 01712345678)")}
+                  className="pl-12 h-14 text-lg rounded-xl border-border/50"
+                  maxLength={11}
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="btn-primary h-14 w-full" 
+                disabled={isLoading || !orderNumber.trim() || !phoneNumber.trim()}
+              >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 ) : (
@@ -120,7 +144,7 @@ const TrackOrder = () => {
           </motion.div>
 
           {/* Results */}
-          {searchedOrderNumber && (
+          {searchParams && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -141,7 +165,7 @@ const TrackOrder = () => {
                     <Package className="w-12 h-12 text-orange-500 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">{t("অর্ডার পাওয়া যায়নি", "Order Not Found")}</h3>
                     <p className="text-muted-foreground mb-4">
-                      {t(`"${searchedOrderNumber}" নম্বরে কোনো অর্ডার নেই। সঠিক অর্ডার নম্বর দিয়ে আবার চেষ্টা করুন।`, `No order found with "${searchedOrderNumber}". Please try with the correct order number.`)}
+                      {t("এই তথ্য দিয়ে কোনো অর্ডার পাওয়া যায়নি। অর্ডার নম্বর ও ফোন নম্বর সঠিকভাবে দিন।", "No order found with this information. Please verify your order number and phone number.")}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {t("অর্ডার নম্বর আপনার অর্ডার কনফার্মেশন এসএমএস বা ইমেইলে পাবেন", "You can find your order number in the confirmation SMS or email")}
@@ -342,29 +366,37 @@ const TrackOrder = () => {
           )}
 
           {/* Help Section */}
-          {!searchedOrderNumber && (
+          {!searchParams && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="max-w-2xl mx-auto"
             >
-              <Card className="bg-muted/30">
+              <Card className="bg-muted/30 border-dashed">
                 <CardContent className="py-8">
-                  <h3 className="font-semibold text-lg mb-4 text-center">{t("অর্ডার নম্বর কোথায় পাবেন?", "Where to find your order number?")}</h3>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <div className="flex items-start gap-3">
-                      <ChevronRight className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p>{t("অর্ডার সফল হওয়ার পরে আপনার স্ক্রিনে অর্ডার নম্বর দেখানো হয়", "Order number is shown on your screen after successful order")}</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <ChevronRight className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p>{t("আমরা আপনাকে ফোনে কল করে অর্ডার কনফার্ম করব", "We will call you to confirm your order")}</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <ChevronRight className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p>{t("ইমেইল দিয়ে অর্ডার করলে ইমেইলেও অর্ডার নম্বর পাঠানো হয়", "If you ordered with email, order number is also sent via email")}</p>
-                    </div>
+                  <h3 className="font-semibold text-center mb-4">{t("অর্ডার নম্বর কোথায় পাবেন?", "Where to find your order number?")}</h3>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-start gap-3">
+                      <ChevronRight className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <span>{t("অর্ডার সফল হলে যে পেজ দেখানো হয় সেখানে", "On the order success page after completing your order")}</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <ChevronRight className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <span>{t("আপনার ইমেইলে পাঠানো কনফার্মেশন মেসেজে", "In the confirmation email sent to you")}</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <ChevronRight className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <span>{t("এসএমএস এর মাধ্যমে পাঠানো নোটিফিকেশনে", "In the SMS notification sent to your phone")}</span>
+                    </li>
+                  </ul>
+                  <div className="mt-6 text-center">
+                    <Link to="/shop">
+                      <Button variant="outline" className="gap-2">
+                        <Package className="w-4 h-4" />
+                        {t("শপিং চালিয়ে যান", "Continue Shopping")}
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
