@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, useCallback } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,46 +20,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRoleLoading, setIsRoleLoading] = useState(false);
-
-  const checkAdminRole = useCallback(async (userId: string) => {
-    try {
-      // Use security definer RPC to bypass RLS
-      const { data: isAdminRole, error } = await supabase.rpc("has_role", {
-        _user_id: userId,
-        _role: "admin",
-      });
-
-      setIsAdmin(!!isAdminRole && !error);
-    } finally {
-      setIsRoleLoading(false);
-    }
-  }, []);
-
-  const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
-  }, []);
-
-  const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/admin`,
-      },
-    });
-    return { error: error as Error | null };
-  }, []);
-
-  const signOut = useCallback(async () => {
-    const { error } = await supabase.auth.signOut({ scope: "local" });
-    if (error) throw error;
-
-    // Ensure UI updates immediately even if onAuthStateChange is delayed
-    setSession(null);
-    setUser(null);
-    setIsAdmin(false);
-  }, []);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -104,7 +64,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     })();
 
     return () => subscription.unsubscribe();
-  }, [checkAdminRole]);
+  }, []);
+
+  const checkAdminRole = async (userId: string) => {
+    try {
+      // Use security definer RPC to bypass RLS
+      const { data: isAdminRole, error } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "admin",
+      });
+
+      setIsAdmin(!!isAdminRole && !error);
+    } finally {
+      setIsRoleLoading(false);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error: error as Error | null };
+  };
+
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/admin`,
+      },
+    });
+    return { error: error as Error | null };
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) throw error;
+
+    // Ensure UI updates immediately even if onAuthStateChange is delayed
+    setSession(null);
+    setUser(null);
+    setIsAdmin(false);
+  };
 
   return (
     <AuthContext.Provider
