@@ -1,9 +1,21 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const ResetPasswordSchema = z.object({
+  userId: z.string().uuid("Invalid user ID"),
+  newPassword: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password too long")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[0-9]/, "Password must contain a number"),
+});
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -55,22 +67,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse request body
-    const { userId, newPassword } = await req.json();
-
-    if (!userId || !newPassword) {
+    // Parse and validate request body
+    let validatedInput;
+    try {
+      const rawBody = await req.json();
+      validatedInput = ResetPasswordSchema.parse(rawBody);
+    } catch (validationError) {
+      console.log("Validation error:", validationError);
+      if (validationError instanceof z.ZodError) {
+        const firstError = validationError.errors[0];
+        return new Response(
+          JSON.stringify({ error: firstError?.message || "Invalid input" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       return new Response(
-        JSON.stringify({ error: "User ID and new password are required" }),
+        JSON.stringify({ error: "Invalid request body" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (newPassword.length < 6) {
-      return new Response(
-        JSON.stringify({ error: "Password must be at least 6 characters" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const { userId, newPassword } = validatedInput;
 
     // Create service role client for admin operations
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey, {
