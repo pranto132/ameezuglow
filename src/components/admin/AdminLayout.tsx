@@ -83,12 +83,7 @@ export const AdminLayout = () => {
             <SidebarTrigger className="mr-4">
               <Menu className="w-5 h-5" />
             </SidebarTrigger>
-            <div className="flex items-baseline gap-3 min-w-0">
-              <h1 className="font-display text-xl font-bold text-primary">Ameezuglow Admin</h1>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email ?? ""}  {isVerifiedAdmin ? "admin" : "not-admin"}
-              </p>
-            </div>
+            <h1 className="font-display text-xl font-bold text-primary">Ameezuglow Admin</h1>
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
