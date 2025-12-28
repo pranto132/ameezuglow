@@ -13,8 +13,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, Truck, CreditCard, Smartphone } from "lucide-react";
+import { Loader2, CheckCircle, Truck, CreditCard, Smartphone, Tag, X } from "lucide-react";
 import { z } from "zod";
+import { Tables } from "@/integrations/supabase/types";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -24,6 +25,10 @@ const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [didSubmit, setDidSubmit] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [couponCode, setCouponCode] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<Tables<"coupons"> | null>(null);
+  const [couponError, setCouponError] = useState("");
   const [formData, setFormData] = useState({
     customer_name: "",
     customer_phone: "",
@@ -90,7 +95,78 @@ const Checkout = () => {
   const freeDeliveryMin = courierServices?.free_delivery_min_order ? Number(courierServices.free_delivery_min_order) : 2000;
   const isFreeDelivery = subtotal >= freeDeliveryMin;
   const finalShipping = isFreeDelivery ? 0 : shippingCost;
-  const total = subtotal + finalShipping;
+
+  // Calculate discount from coupon
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.discount_type === "percentage") {
+      return Math.round((subtotal * appliedCoupon.discount_value) / 100);
+    }
+    return appliedCoupon.discount_value;
+  };
+
+  const discount = calculateDiscount();
+  const total = subtotal - discount + finalShipping;
+
+  // Apply coupon handler
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError(t("কুপন কোড দিন", "Enter a coupon code"));
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    setCouponError("");
+
+    try {
+      const { data, error } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", couponCode.trim().toUpperCase())
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        setCouponError(t("এই কুপন কোড সঠিক নয়", "Invalid coupon code"));
+        return;
+      }
+
+      // Check if coupon is expired
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        setCouponError(t("এই কুপনের মেয়াদ শেষ হয়ে গেছে", "This coupon has expired"));
+        return;
+      }
+
+      // Check max uses
+      if (data.max_uses && data.used_count && data.used_count >= data.max_uses) {
+        setCouponError(t("এই কুপনের ব্যবহার সীমা শেষ", "This coupon usage limit reached"));
+        return;
+      }
+
+      // Check minimum order value
+      if (data.min_order_value && subtotal < data.min_order_value) {
+        setCouponError(t(`ন্যূনতম ৳${data.min_order_value} অর্ডার করতে হবে`, `Minimum order ৳${data.min_order_value} required`));
+        return;
+      }
+
+      setAppliedCoupon(data);
+      toast.success(t("কুপন প্রয়োগ হয়েছে!", "Coupon applied!"));
+    } catch (error) {
+      console.error("Coupon error:", error);
+      setCouponError(t("কুপন প্রয়োগ করতে সমস্যা হয়েছে", "Error applying coupon"));
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+    toast.info(t("কুপন সরানো হয়েছে", "Coupon removed"));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -119,6 +195,8 @@ const Checkout = () => {
           payment_method: validated.payment_method,
           transaction_id: validated.transaction_id || null,
           subtotal,
+          discount,
+          coupon_code: appliedCoupon?.code || null,
           shipping_cost: finalShipping,
           total,
           items: items.map((item) => ({
@@ -449,11 +527,73 @@ const Checkout = () => {
                     ))}
                   </div>
 
+                  {/* Coupon Code Section */}
+                  <div className="border-t border-border pt-4 mb-4">
+                    <Label className="mb-2 block text-sm font-medium">
+                      <Tag className="w-4 h-4 inline mr-1" />
+                      {t("কুপন কোড", "Coupon Code")}
+                    </Label>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                        <div>
+                          <span className="font-medium text-green-700 dark:text-green-400">{appliedCoupon.code}</span>
+                          <p className="text-xs text-green-600 dark:text-green-500">
+                            {appliedCoupon.discount_type === "percentage" 
+                              ? `${appliedCoupon.discount_value}% ${t("ছাড়", "off")}`
+                              : `৳${appliedCoupon.discount_value} ${t("ছাড়", "off")}`}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemoveCoupon}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value.toUpperCase());
+                            setCouponError("");
+                          }}
+                          placeholder={t("কুপন কোড দিন", "Enter coupon")}
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleApplyCoupon}
+                          disabled={isApplyingCoupon}
+                        >
+                          {isApplyingCoupon ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            t("প্রয়োগ", "Apply")
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    {couponError && (
+                      <p className="text-sm text-destructive mt-1">{couponError}</p>
+                    )}
+                  </div>
+
                   <div className="border-t border-border pt-4 space-y-2 mb-4">
                     <div className="flex justify-between text-foreground/80">
                       <span>{t("সাবটোটাল", "Subtotal")}</span>
                       <span>৳{subtotal.toFixed(0)}</span>
                     </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>{t("কুপন ডিসকাউন্ট", "Coupon Discount")}</span>
+                        <span>-৳{discount}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-foreground/80">
                       <span>{t("ডেলিভারি চার্জ", "Delivery Charge")}</span>
                       {isFreeDelivery ? (

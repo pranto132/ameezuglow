@@ -22,6 +22,8 @@ const CreateOrderSchema = z.object({
   payment_method: z.enum(["cod", "bkash", "nagad", "rocket", "bank"]),
   transaction_id: z.string().max(100).optional().nullable(),
   subtotal: z.number().positive().max(10000000),
+  discount: z.number().min(0).max(10000000).optional().default(0),
+  coupon_code: z.string().max(50).optional().nullable(),
   shipping_cost: z.number().min(0).max(10000),
   total: z.number().positive().max(10000000),
   items: z.array(CartItemSchema).min(1, "Cart cannot be empty").max(100),
@@ -67,10 +69,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate that total approximately equals subtotal + shipping_cost
-    const expectedTotal = body.subtotal + body.shipping_cost;
+    // Validate that total approximately equals subtotal - discount + shipping_cost
+    const discountAmount = body.discount || 0;
+    const expectedTotal = body.subtotal - discountAmount + body.shipping_cost;
     if (Math.abs(body.total - expectedTotal) > 1) {
-      console.error("Total mismatch:", { total: body.total, expected: expectedTotal });
+      console.error("Total mismatch:", { total: body.total, expected: expectedTotal, discount: discountAmount });
       return new Response(JSON.stringify({ error: "Total amount mismatch" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -97,6 +100,7 @@ Deno.serve(async (req) => {
         area: body.area || null,
         notes: body.notes || null,
         subtotal: body.subtotal,
+        discount: discountAmount,
         shipping_cost: body.shipping_cost,
         total: body.total,
         payment_method: body.payment_method,
@@ -106,6 +110,11 @@ Deno.serve(async (req) => {
       })
       .select("id, order_number")
       .single();
+
+    // 2) If coupon was used, increment used_count
+    if (body.coupon_code && order) {
+      await admin.rpc("increment_coupon_usage", { coupon_code_param: body.coupon_code });
+    }
 
     if (orderError || !order) {
       console.error("Order creation error:", orderError);
