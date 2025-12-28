@@ -17,7 +17,7 @@ const loginSchema = z.object({
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { signIn, signOut, isLoading: authLoading } = useAuth();
+  const { signIn, isLoading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -31,32 +31,38 @@ const AdminLogin = () => {
     try {
       const validated = loginSchema.parse(formData);
 
-      // Ensure we're not reusing a previous (possibly admin) session
-      await signOut();
+      // CRITICAL: Clear ALL previous sessions first to prevent stale admin access
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        // Ignore signout errors
+      }
 
+      // Fresh login
       const { error } = await signIn(validated.email, validated.password);
       if (error) {
         toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
         return;
       }
 
+      // Get fresh user data
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) {
-        await signOut();
-        toast.error("লগইন যাচাই করা যায়নি, আবার চেষ্টা করুন");
+        await supabase.auth.signOut({ scope: "local" });
+        toast.error("লগইন যাচাই করা যায়নি, আবার চেষ্টা করুন");
         return;
       }
 
-      // Server-side role check (security definer function)
+      // Server-side role check - MUST return exactly true
       const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
         _user_id: userData.user.id,
         _role: "admin",
       });
 
-      if (roleError || !isAdmin) {
-        await signOut();
+      if (roleError || isAdmin !== true) {
+        // Not admin - sign out completely and show error
+        await supabase.auth.signOut({ scope: "local" });
         toast.error("আপনার অ্যাডমিন অ্যাক্সেস নেই");
-        navigate("/admin/login", { replace: true });
         return;
       }
 
@@ -71,6 +77,10 @@ const AdminLogin = () => {
           }
         });
         setErrors(fieldErrors);
+      } else {
+        // Sign out on any unexpected error
+        await supabase.auth.signOut({ scope: "local" });
+        toast.error("একটি সমস্যা হয়েছে, আবার চেষ্টা করুন");
       }
     } finally {
       setIsSubmitting(false);
