@@ -237,9 +237,6 @@ export const Footer = () => {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-background/50 flex items-center gap-1">
-              Made with <Heart className="w-4 h-4 text-primary fill-primary" /> in Bangladesh
-            </p>
           </div>
         </div>
       </div>
