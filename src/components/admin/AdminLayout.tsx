@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSidebar } from "./AdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Menu } from "lucide-react";
+import { Loader2, Menu, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export const AdminLayout = () => {
   const { user, isLoading, signOut } = useAuth();
@@ -13,21 +14,40 @@ export const AdminLayout = () => {
 
   const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
+
+  const forceSignOutAndRedirect = useCallback(async () => {
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // Ignore errors
+    }
+    setIsVerifiedAdmin(false);
+    setAccessDenied(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     const verify = async () => {
+      // Reset states on every check
+      setIsVerifying(true);
+      setIsVerifiedAdmin(false);
+      setAccessDenied(false);
+
       if (!user) {
-        setIsVerifiedAdmin(false);
         setIsVerifying(false);
         return;
       }
 
-      setIsVerifying(true);
-      setIsVerifiedAdmin(false);
-
       try {
+        // Fresh session check to ensure token is valid
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session || sessionData.session.user.id !== user.id) {
+          if (!cancelled) await forceSignOutAndRedirect();
+          return;
+        }
+
         // Always verify admin access from the backend (deny-by-default)
         const { data: isAdmin, error } = await supabase.rpc("has_role", {
           _user_id: user.id,
@@ -36,28 +56,25 @@ export const AdminLayout = () => {
 
         if (cancelled) return;
 
-        if (error || !isAdmin) {
-          await signOut();
-          setIsVerifiedAdmin(false);
-          setIsVerifying(false);
+        if (error || isAdmin !== true) {
+          await forceSignOutAndRedirect();
           return;
         }
 
         setIsVerifiedAdmin(true);
+      } catch {
+        if (!cancelled) await forceSignOutAndRedirect();
       } finally {
         if (!cancelled) setIsVerifying(false);
       }
     };
 
-    // Defer to avoid doing async work during render
-    setTimeout(() => {
-      verify();
-    }, 0);
+    verify();
 
     return () => {
       cancelled = true;
     };
-  }, [user?.id, signOut]);
+  }, [user?.id, forceSignOutAndRedirect]);
 
   if (isLoading || isVerifying) {
     return (
@@ -71,8 +88,25 @@ export const AdminLayout = () => {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  if (!isVerifiedAdmin) {
-    return <Navigate to="/admin/login" replace />;
+  // Show access denied screen instead of just redirecting
+  if (accessDenied || !isVerifiedAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center space-y-4">
+          <ShieldAlert className="w-16 h-16 text-destructive mx-auto" />
+          <h1 className="text-2xl font-bold text-foreground">অ্যাক্সেস নেই</h1>
+          <p className="text-muted-foreground">আপনার অ্যাডমিন প্যানেলে প্রবেশের অনুমতি নেই।</p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => window.location.href = "/"}>
+              হোমে ফিরুন
+            </Button>
+            <Button onClick={() => window.location.href = "/admin/login"}>
+              আবার লগইন করুন
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
