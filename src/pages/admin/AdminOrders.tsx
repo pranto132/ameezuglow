@@ -158,15 +158,25 @@ const AdminOrders = () => {
 
   const updatePaymentStatusMutation = useMutation({
     mutationFn: async ({ id, payment_status }: { id: string; payment_status: string }) => {
+      // If payment is verified, also set order status to confirmed
+      const updateData: { payment_status: string; order_status?: string } = { payment_status };
+      if (payment_status === "verified") {
+        updateData.order_status = "confirmed";
+      }
+      
       const { error } = await supabase
         .from("orders")
-        .update({ payment_status })
+        .update(updateData)
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      toast.success("পেমেন্ট স্ট্যাটাস আপডেট হয়েছে");
+      if (variables.payment_status === "verified") {
+        toast.success("পেমেন্ট ভেরিফাইড এবং অর্ডার কনফার্মড হয়েছে");
+      } else {
+        toast.success("পেমেন্ট স্ট্যাটাস আপডেট হয়েছে");
+      }
     },
     onError: () => {
       toast.error("পেমেন্ট স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে");
