@@ -872,6 +872,7 @@ const AdminOrders = () => {
                 order={invoiceOrder}
                 orderItems={invoiceItems}
                 siteName={siteSettings?.site_name || "Ameezuglow"}
+                siteLogo={siteSettings?.site_logo}
                 sitePhone={siteSettings?.contact_phone}
                 siteEmail={siteSettings?.contact_email}
                 siteAddress={siteSettings?.address}
