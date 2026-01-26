@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { openInvoiceInNewTab } from "@/utils/printInvoice";
+import { openInvoiceInNewTab, openMultipleInvoicesInNewTab } from "@/utils/printInvoice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Search, Eye, Loader2, FileText, Truck, Trash2, CheckSquare, ExternalLink } from "lucide-react";
+import { Search, Eye, Loader2, FileText, Truck, Trash2, CheckSquare, ExternalLink, Printer } from "lucide-react";
 
 const statusOptions = [
   { value: "pending", label: "পেন্ডিং", color: "bg-orange-100 text-orange-700" },
@@ -397,6 +397,16 @@ const AdminOrders = () => {
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Bulk Print Invoice */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => openMultipleInvoicesInNewTab(selectedOrders)}
+            >
+              <Printer className="w-4 h-4 mr-1" />
+              ইনভয়েস প্রিন্ট
+            </Button>
 
             {/* Bulk Delete */}
             <AlertDialog>
