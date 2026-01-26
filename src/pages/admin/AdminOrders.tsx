@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Search, Eye, Loader2, FileText, Printer, Truck, Trash2, CheckSquare } from "lucide-react";
-import { Invoice } from "@/components/admin/Invoice";
-import { useReactToPrint } from "react-to-print";
+import { Search, Eye, Loader2, FileText, Truck, Trash2, CheckSquare, ExternalLink } from "lucide-react";
 
 const statusOptions = [
   { value: "pending", label: "পেন্ডিং", color: "bg-orange-100 text-orange-700" },
@@ -33,10 +32,10 @@ const paymentStatusOptions = [
 
 const AdminOrders = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [invoiceOrder, setInvoiceOrder] = useState<any>(null);
   const [courierDialogOrder, setCourierDialogOrder] = useState<any>(null);
   const [courierFormData, setCourierFormData] = useState({
     courier_name: "",
@@ -45,7 +44,6 @@ const AdminOrders = () => {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [bulkActionOpen, setBulkActionOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<string>("");
-  const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const channel = supabase
@@ -110,37 +108,9 @@ const AdminOrders = () => {
     enabled: !!selectedOrder,
   });
 
-  const { data: invoiceItems } = useQuery({
-    queryKey: ["invoice-items", invoiceOrder?.id],
-    queryFn: async () => {
-      if (!invoiceOrder) return [];
-      const { data, error } = await supabase
-        .from("order_items")
-        .select("*")
-        .eq("order_id", invoiceOrder.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!invoiceOrder,
-  });
-
-  const { data: siteSettings } = useQuery({
-    queryKey: ["site-settings-invoice"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("site_settings").select("*");
-      if (error) throw error;
-      const settings: Record<string, string> = {};
-      data.forEach((s: any) => {
-        settings[s.key] = s.value;
-      });
-      return settings;
-    },
-  });
-
-  const handlePrint = useReactToPrint({
-    contentRef: invoiceRef,
-    documentTitle: `Invoice-${invoiceOrder?.order_number || ""}`,
-  });
+  const handleOpenInvoice = (order: any) => {
+    window.open(`/invoice?order=${order.order_number}`, '_blank');
+  };
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -593,7 +563,7 @@ const AdminOrders = () => {
                       <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(order)} title="বিস্তারিত">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setInvoiceOrder(order)} title="ইনভয়েস">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(order)} title="ইনভয়েস">
                         <FileText className="w-4 h-4" />
                       </Button>
                       <AlertDialog>
@@ -774,9 +744,9 @@ const AdminOrders = () => {
               <div className="flex justify-end pt-4 border-t">
                 <Button onClick={() => {
                   setSelectedOrder(null);
-                  setInvoiceOrder(selectedOrder);
+                  handleOpenInvoice(selectedOrder);
                 }}>
-                  <FileText className="w-4 h-4 mr-2" />
+                  <ExternalLink className="w-4 h-4 mr-2" />
                   ইনভয়েস দেখুন
                 </Button>
               </div>
@@ -853,34 +823,6 @@ const AdminOrders = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Invoice Dialog */}
-      <Dialog open={!!invoiceOrder} onOpenChange={(open) => !open && setInvoiceOrder(null)}>
-        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="flex items-center justify-between">
-              <span>ইনভয়েস - {invoiceOrder?.order_number}</span>
-              <Button onClick={() => handlePrint()} className="mr-8">
-                <Printer className="w-4 h-4 mr-2" />
-                প্রিন্ট করুন
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          {invoiceOrder && invoiceItems && (
-            <div className="p-6 pt-4">
-              <Invoice
-                ref={invoiceRef}
-                order={invoiceOrder}
-                orderItems={invoiceItems}
-                siteName={siteSettings?.site_name || "Ameezuglow"}
-                siteLogo={siteSettings?.site_logo}
-                sitePhone={siteSettings?.contact_phone}
-                siteEmail={siteSettings?.contact_email}
-                siteAddress={siteSettings?.address}
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
