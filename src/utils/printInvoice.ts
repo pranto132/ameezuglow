@@ -370,11 +370,12 @@ const generateInvoiceHTML = (
     <!-- Header -->
     <div class="invoice-header">
       <div class="company-info">
-        ${siteLogo ? `<img src="${siteLogo}" alt="${siteName}" class="company-logo">` : ""}
+        ${siteLogo 
+          ? `<img src="${siteLogo}" alt="${siteName}" class="company-logo">`
+          : `<div class="company-name">${siteName}</div>`
+        }
         <div>
-          <div class="company-name">${siteName}</div>
           ${siteAddress ? `<div class="company-address">${siteAddress}</div>` : ""}
-        </div>
       </div>
       <div class="invoice-title">
         <h2>Invoice</h2>
