@@ -1,15 +1,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ShoppingBag, Menu, X, Search, User, ChevronDown, LogOut } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, User, ChevronDown, LogOut, MoreVertical, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "next-themes";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { t } = useLanguage();
   const { getSetting } = useSiteSettings();
   const itemCount = useCartStore((state) => state.getItemCount());
@@ -153,9 +154,6 @@ export const Navbar = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-2">
-              {/* Theme Toggle */}
-              <ThemeToggle />
-              
               {/* Language Switcher */}
               <LanguageSwitcher />
               
@@ -221,7 +219,43 @@ export const Navbar = () => {
                 )}
               </div>
 
-              {/* Mobile Menu Toggle */}
+              {/* Three Dot Menu - Desktop */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hidden lg:flex p-2.5 hover:bg-muted rounded-xl transition-colors">
+                    <MoreVertical className="w-5 h-5 text-foreground/70" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-card">
+                  <DropdownMenuItem 
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    className="cursor-pointer"
+                  >
+                    {theme === "dark" ? (
+                      <>
+                        <Sun className="w-4 h-4 mr-2" />
+                        {t("লাইট মোড", "Light Mode")}
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="w-4 h-4 mr-2" />
+                        {t("ডার্ক মোড", "Dark Mode")}
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/about" className="cursor-pointer">
+                      {t("আমাদের সম্পর্কে", "About Us")}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/contact" className="cursor-pointer">
+                      {t("যোগাযোগ", "Contact")}
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <button
                 className="lg:hidden p-2.5 hover:bg-muted rounded-xl transition-colors"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -341,6 +375,26 @@ export const Navbar = () => {
                       </Link>
                     </div>
                   )}
+                </div>
+
+                {/* Theme Toggle in Mobile */}
+                <div className="pt-4 mt-4 border-t border-border/50">
+                  <button
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    className="w-full py-3 px-4 rounded-xl font-medium text-foreground/80 hover:bg-muted flex items-center gap-3"
+                  >
+                    {theme === "dark" ? (
+                      <>
+                        <Sun className="w-5 h-5" />
+                        {t("লাইট মোড", "Light Mode")}
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="w-5 h-5" />
+                        {t("ডার্ক মোড", "Dark Mode")}
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 <div className="pt-4 mt-4 border-t border-border/50 flex gap-2">
