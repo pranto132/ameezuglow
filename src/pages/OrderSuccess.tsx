@@ -1,17 +1,59 @@
+import { useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useReactToPrint } from "react-to-print";
+import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { CheckCircle, Home, ShoppingBag, Phone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Invoice } from "@/components/admin/Invoice";
+import { CheckCircle, Home, ShoppingBag, Phone, Printer } from "lucide-react";
 
 const OrderSuccess = () => {
   const { t } = useLanguage();
-  const { getSetting } = useSiteSettings();
+  const { getSetting, settings: siteSettings } = useSiteSettings();
   const [searchParams] = useSearchParams();
   const orderNumber = searchParams.get("order");
   const contactPhone = getSetting("contact_phone", "+880 1XXX-XXXXXX");
+  const invoiceRef = useRef<HTMLDivElement>(null);
+
+  // Fetch order details
+  const { data: order } = useQuery({
+    queryKey: ["order-success", orderNumber],
+    queryFn: async () => {
+      if (!orderNumber) return null;
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("order_number", orderNumber)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!orderNumber,
+  });
+
+  // Fetch order items
+  const { data: orderItems = [] } = useQuery({
+    queryKey: ["order-items-success", order?.id],
+    queryFn: async () => {
+      if (!order?.id) return [];
+      const { data, error } = await supabase
+        .from("order_items")
+        .select("*")
+        .eq("order_id", order.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!order?.id,
+  });
+
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice-${orderNumber}`,
+  });
 
   return (
     <Layout>
@@ -65,7 +107,13 @@ const OrderSuccess = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild className="btn-primary">
+              {order && (
+                <Button onClick={() => handlePrint()} className="btn-primary">
+                  <Printer className="w-4 h-4 mr-2" />
+                  {t("ইনভয়েস প্রিন্ট করুন", "Print Invoice")}
+                </Button>
+              )}
+              <Button asChild variant="outline">
                 <Link to="/">
                   <Home className="w-4 h-4 mr-2" />
                   {t("হোমে ফিরে যান", "Back to Home")}
@@ -92,6 +140,22 @@ const OrderSuccess = () => {
               </a>
             </div>
           </motion.div>
+
+          {/* Hidden Invoice for Printing */}
+          {order && (
+            <div className="hidden">
+              <Invoice
+                ref={invoiceRef}
+                order={order}
+                orderItems={orderItems}
+                siteName={siteSettings?.site_name || "Ameezuglow"}
+                siteLogo={siteSettings?.site_logo}
+                sitePhone={siteSettings?.contact_phone}
+                siteEmail={siteSettings?.contact_email}
+                siteAddress={siteSettings?.contact_address}
+              />
+            </div>
+          )}
         </div>
       </section>
     </Layout>
