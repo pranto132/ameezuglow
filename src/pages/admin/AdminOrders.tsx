@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { openInvoiceInNewTab } from "@/utils/printInvoice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,7 +110,7 @@ const AdminOrders = () => {
   });
 
   const handleOpenInvoice = (order: any) => {
-    window.open(`/invoice?order=${order.order_number}`, '_blank');
+    openInvoiceInNewTab(order.order_number);
   };
 
   const updateStatusMutation = useMutation({

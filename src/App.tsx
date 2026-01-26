@@ -13,7 +13,6 @@ import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
-import InvoicePrint from "./pages/InvoicePrint";
 import Auth from "./pages/Auth";
 import Orders from "./pages/Orders";
 import TrackOrder from "./pages/TrackOrder";
@@ -54,7 +53,6 @@ const App = () => (
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/order-success" element={<OrderSuccess />} />
-              <Route path="/invoice" element={<InvoicePrint />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/track-order" element={<TrackOrder />} />

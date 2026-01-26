@@ -4,6 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { openInvoiceInNewTab } from "@/utils/printInvoice";
 import { CheckCircle, Home, ShoppingBag, Phone, Printer } from "lucide-react";
 
 const OrderSuccess = () => {
@@ -66,11 +67,9 @@ const OrderSuccess = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {orderNumber && (
-                <Button asChild className="btn-primary">
-                  <Link to={`/invoice?order=${orderNumber}`}>
-                    <Printer className="w-4 h-4 mr-2" />
-                    {t("ইনভয়েস প্রিন্ট করুন", "Print Invoice")}
-                  </Link>
+                <Button onClick={() => openInvoiceInNewTab(orderNumber)} className="btn-primary">
+                  <Printer className="w-4 h-4 mr-2" />
+                  {t("ইনভয়েস প্রিন্ট করুন", "Print Invoice")}
                 </Button>
               )}
               <Button asChild variant="outline">
