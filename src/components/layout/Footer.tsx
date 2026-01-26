@@ -23,13 +23,13 @@ export const Footer = () => {
   const instagramUrl = getSetting("instagram_url", "https://instagram.com");
 
   return (
-    <footer className="bg-foreground text-background relative overflow-hidden">
+    <footer className="bg-secondary text-foreground relative overflow-hidden border-t border-border">
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
 
       {/* Newsletter Section */}
-      <div className="relative border-b border-background/10">
+      <div className="relative border-b border-border">
         <div className="container mx-auto container-padding py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -40,14 +40,14 @@ export const Footer = () => {
             <h3 className="font-display text-2xl md:text-3xl font-bold mb-3">
               {t("আমাদের সাথে যুক্ত থাকুন", "Stay Connected")}
             </h3>
-            <p className="text-background/70 mb-6">
+            <p className="text-muted-foreground mb-6">
               {t("নতুন প্রোডাক্ট, অফার ও বিউটি টিপস পেতে সাবস্ক্রাইব করুন", "Subscribe for new products, offers & beauty tips")}
             </p>
             <div className="flex gap-2 max-w-md mx-auto">
               <Input
                 type="email"
                 placeholder={t("আপনার ইমেইল ঠিকানা", "Your email address")}
-                className="bg-background/10 border-background/20 text-background placeholder:text-background/50 focus:border-blush"
+                className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
               />
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6">
                 <Send className="w-4 h-4 mr-2" />
@@ -67,12 +67,12 @@ export const Footer = () => {
               {logoUrl ? (
                 <img src={logoUrl} alt={siteName} className="h-10 w-auto object-contain" />
               ) : (
-                <span className="font-display text-3xl font-bold bg-gradient-to-r from-blush via-rose-gold to-accent bg-clip-text text-transparent">
+                <span className="font-display text-3xl font-bold bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
                   {siteName}
                 </span>
               )}
             </Link>
-            <p className="text-background/70 text-sm leading-relaxed mb-6">
+            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               {t(footerTextBn || "আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো। প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট।", footerText || "Bring new light to your natural glow. Premium cosmetics & skincare products.")}
             </p>
             <div className="flex gap-3">
@@ -80,7 +80,7 @@ export const Footer = () => {
                 href={facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2.5 bg-background/10 rounded-xl hover:bg-primary hover:scale-110 transition-all duration-300"
+                className="p-2.5 bg-primary/10 rounded-xl hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-300"
               >
                 <Facebook className="w-5 h-5" />
               </a>
@@ -88,7 +88,7 @@ export const Footer = () => {
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2.5 bg-background/10 rounded-xl hover:bg-primary hover:scale-110 transition-all duration-300"
+                className="p-2.5 bg-primary/10 rounded-xl hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-300"
               >
                 <Instagram className="w-5 h-5" />
               </a>
@@ -105,7 +105,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/shop"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("সব প্রোডাক্ট", "All Products")}
                 </Link>
@@ -113,7 +113,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/shop?offers=true"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("অফার", "Offers")}
                 </Link>
@@ -121,7 +121,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/shop?category=skincare"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("স্কিনকেয়ার", "Skincare")}
                 </Link>
@@ -129,7 +129,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/shop?category=makeup"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("মেকআপ", "Makeup")}
                 </Link>
@@ -147,7 +147,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/track-order"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("অর্ডার ট্র্যাক করুন", "Track Order")}
                 </Link>
@@ -155,7 +155,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/privacy"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("গোপনীয়তা নীতি", "Privacy Policy")}
                 </Link>
@@ -163,7 +163,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/returns"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("রিটার্ন ও রিফান্ড", "Returns & Refunds")}
                 </Link>
@@ -171,7 +171,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/terms"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("শর্তাবলী", "Terms & Conditions")}
                 </Link>
@@ -179,7 +179,7 @@ export const Footer = () => {
               <li>
                 <Link
                   to="/faq"
-                  className="text-background/70 hover:text-blush hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   {t("সাধারণ প্রশ্ন", "FAQ")}
                 </Link>
@@ -197,10 +197,10 @@ export const Footer = () => {
               <li>
                 <a
                   href={`tel:${contactPhone.replace(/\s+/g, '')}`}
-                  className="flex items-center gap-3 text-background/70 hover:text-blush transition-colors"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <div className="p-2 bg-background/10 rounded-lg">
-                    <Phone className="w-4 h-4 text-blush" />
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Phone className="w-4 h-4 text-primary" />
                   </div>
                   <span>{contactPhone}</span>
                 </a>
@@ -208,17 +208,17 @@ export const Footer = () => {
               <li>
                 <a
                   href={`mailto:${contactEmail}`}
-                  className="flex items-center gap-3 text-background/70 hover:text-blush transition-colors"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <div className="p-2 bg-background/10 rounded-lg">
-                    <Mail className="w-4 h-4 text-blush" />
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Mail className="w-4 h-4 text-primary" />
                   </div>
                   <span>{contactEmail}</span>
                 </a>
               </li>
-              <li className="flex items-start gap-3 text-background/70">
-                <div className="p-2 bg-background/10 rounded-lg mt-0.5">
-                  <MapPin className="w-4 h-4 text-blush" />
+              <li className="flex items-start gap-3 text-muted-foreground">
+                <div className="p-2 bg-primary/10 rounded-lg mt-0.5">
+                  <MapPin className="w-4 h-4 text-primary" />
                 </div>
                 <span>{t(addressBn, address)}</span>
               </li>
@@ -227,18 +227,18 @@ export const Footer = () => {
         </div>
 
         {/* Payment Methods */}
-        <div className="mt-12 pt-8 border-t border-background/10">
+        <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <span className="text-sm text-background/50">{t("পেমেন্ট মেথড:", "Payment Methods:")}</span>
+              <span className="text-sm text-muted-foreground">{t("পেমেন্ট মেথড:", "Payment Methods:")}</span>
               <div className="flex gap-2">
-                <div className="px-3 py-1.5 bg-background/10 rounded text-xs font-medium">
+                <div className="px-3 py-1.5 bg-primary/10 rounded text-xs font-medium text-foreground">
                   bKash
                 </div>
-                <div className="px-3 py-1.5 bg-background/10 rounded text-xs font-medium">
+                <div className="px-3 py-1.5 bg-primary/10 rounded text-xs font-medium text-foreground">
                   Nagad
                 </div>
-                <div className="px-3 py-1.5 bg-background/10 rounded text-xs font-medium">
+                <div className="px-3 py-1.5 bg-primary/10 rounded text-xs font-medium text-foreground">
                   COD
                 </div>
               </div>
@@ -248,8 +248,8 @@ export const Footer = () => {
       </div>
 
       {/* Copyright */}
-      <div className="border-t border-background/10 py-6">
-        <div className="container mx-auto container-padding text-center text-sm text-background/50">
+      <div className="border-t border-border py-6 bg-muted/50">
+        <div className="container mx-auto container-padding text-center text-sm text-muted-foreground">
           <p>
             {copyrightText || `© ${new Date().getFullYear()} ${siteName}. ${t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}`}
           </p>
