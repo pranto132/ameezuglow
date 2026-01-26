@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,10 +19,14 @@ const loginSchema = z.object({
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { signIn, isLoading: authLoading } = useAuth();
+  const { getSetting } = useSiteSettings();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const siteName = getSetting("site_name", "Ameezuglow");
+  const logoUrl = getSetting("logo_url", "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,8 +109,11 @@ const AdminLogin = () => {
       >
         <div className="bg-card rounded-2xl border border-border shadow-elevated p-8">
           <div className="text-center mb-8">
+            {logoUrl && (
+              <img src={logoUrl} alt={siteName} className="h-12 w-auto mx-auto mb-2 object-contain" />
+            )}
             <h1 className="font-display text-3xl font-bold text-primary mb-2">
-              Ameezuglow
+              {siteName}
             </h1>
             <p className="text-muted-foreground">
               অ্যাডমিন প্যানেলে লগইন করুন

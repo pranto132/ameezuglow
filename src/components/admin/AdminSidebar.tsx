@@ -1,5 +1,6 @@
 import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import {
   Sidebar,
   SidebarContent,
@@ -52,8 +53,12 @@ const settingsItems = [
 export const AdminSidebar = () => {
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { getSetting } = useSiteSettings();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  
+  const siteName = getSetting("site_name", "Ameezuglow");
+  const logoUrl = getSetting("logo_url", "");
 
   const isActive = (url: string) => {
     if (url === "/admin") return location.pathname === "/admin";
@@ -66,9 +71,13 @@ export const AdminSidebar = () => {
         {/* Logo */}
         <div className="p-4 border-b border-border">
           <Link to="/admin" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">A</span>
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="w-8 h-8 object-contain rounded-lg" />
+            ) : (
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">{siteName.charAt(0)}</span>
+              </div>
+            )}
             {!collapsed && (
               <span className="font-display text-lg font-bold text-foreground">Admin</span>
             )}
