@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Search, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Calendar, ChevronRight } from "lucide-react";
+import { Search, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Calendar, ChevronRight, Printer } from "lucide-react";
 import { Link } from "react-router-dom";
+import { openInvoiceInNewTab } from "@/utils/printInvoice";
 
 const TrackOrder = () => {
   const { t } = useLanguage();
@@ -360,6 +361,17 @@ const TrackOrder = () => {
                       </CardContent>
                     </Card>
                   )}
+
+                  {/* Print Invoice Button */}
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      onClick={() => openInvoiceInNewTab(order.order_number)} 
+                      className="btn-primary gap-2"
+                    >
+                      <Printer className="w-4 h-4" />
+                      {t("ইনভয়েস প্রিন্ট করুন", "Print Invoice")}
+                    </Button>
+                  </div>
                 </div>
               ) : null}
             </motion.div>
