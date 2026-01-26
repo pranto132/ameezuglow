@@ -1,15 +1,14 @@
-import { useRef, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice } from "@/components/admin/Invoice";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, Download } from "lucide-react";
 
 const InvoicePrint = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const orderNumber = searchParams.get("order");
   const invoiceRef = useRef<HTMLDivElement>(null);
 
@@ -30,7 +29,7 @@ const InvoicePrint = () => {
   });
 
   // Fetch order details
-  const { data: order, isLoading: orderLoading } = useQuery({
+  const { data: order, isLoading: orderLoading, error: orderError } = useQuery({
     queryKey: ["invoice-order", orderNumber],
     queryFn: async () => {
       if (!orderNumber) return null;
@@ -38,7 +37,7 @@ const InvoicePrint = () => {
         .from("orders")
         .select("*")
         .eq("order_number", orderNumber)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -65,39 +64,28 @@ const InvoicePrint = () => {
     documentTitle: `Invoice-${orderNumber}`,
   });
 
-  if (!orderNumber) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <p className="text-muted-foreground mb-4">No order number provided</p>
-          <Button onClick={() => navigate(-1)} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
+  // Loading state
   if (orderLoading || itemsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading invoice...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading invoice...</p>
         </div>
       </div>
     );
   }
 
-  if (!order) {
+  // Error or not found state
+  if (!orderNumber || !order || orderError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">Order not found</p>
-          <Button onClick={() => navigate(-1)} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
+          <p className="text-gray-600 mb-4">
+            {!orderNumber ? "No order number provided" : "Order not found"}
+          </p>
+          <Button onClick={() => window.close()} variant="outline">
+            Close
           </Button>
         </div>
       </div>
@@ -105,40 +93,47 @@ const InvoicePrint = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 print:bg-white">
-      {/* Print Controls - Hidden when printing */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border p-4 print:hidden">
-        <div className="container mx-auto flex items-center justify-between">
-          <Button onClick={() => navigate(-1)} variant="ghost">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
-          </Button>
+    <div className="min-h-screen bg-white">
+      {/* Fixed Print Bar - Hidden when printing */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white p-3 print:hidden">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <span className="text-sm">
+            Invoice: <strong>{orderNumber}</strong>
+          </span>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              Order: <strong>{orderNumber}</strong>
-            </span>
-            <Button onClick={() => handlePrint()}>
+            <Button 
+              onClick={() => handlePrint()} 
+              size="sm"
+              className="bg-white text-gray-900 hover:bg-gray-100"
+            >
               <Printer className="w-4 h-4 mr-2" />
-              Print Invoice
+              Print
+            </Button>
+            <Button 
+              onClick={() => handlePrint()} 
+              size="sm"
+              variant="outline"
+              className="border-white text-white hover:bg-white/10"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Save as PDF
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Invoice Preview */}
-      <div className="container mx-auto py-8 print:py-0">
-        <div className="max-w-[850px] mx-auto shadow-lg print:shadow-none">
-          <Invoice
-            ref={invoiceRef}
-            order={order}
-            orderItems={orderItems}
-            siteName={siteSettings?.site_name || "Ameezuglow"}
-            siteLogo={siteSettings?.site_logo}
-            sitePhone={siteSettings?.contact_phone}
-            siteEmail={siteSettings?.contact_email}
-            siteAddress={siteSettings?.contact_address}
-          />
-        </div>
+      {/* Invoice Content - Add top padding for fixed bar */}
+      <div className="pt-16 print:pt-0">
+        <Invoice
+          ref={invoiceRef}
+          order={order}
+          orderItems={orderItems}
+          siteName={siteSettings?.site_name || "Ameezuglow"}
+          siteLogo={siteSettings?.site_logo}
+          sitePhone={siteSettings?.contact_phone}
+          siteEmail={siteSettings?.contact_email}
+          siteAddress={siteSettings?.contact_address}
+        />
       </div>
     </div>
   );
