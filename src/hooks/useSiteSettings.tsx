@@ -21,7 +21,8 @@ export const useSiteSettings = () => {
       });
       return settingsMap;
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 1 * 60 * 1000, // Cache for 1 minute (reduced for faster updates)
+    refetchOnWindowFocus: true,
   });
 
   const getSetting = (key: string, defaultValue: string = "") => {

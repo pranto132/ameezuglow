@@ -112,6 +112,7 @@ const AdminSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-site-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["site-settings"] });
       toast({ title: "সেটিংস সংরক্ষিত হয়েছে" });
     },
     onError: () => {
