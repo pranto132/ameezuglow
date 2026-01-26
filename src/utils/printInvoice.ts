@@ -374,8 +374,7 @@ const generateInvoiceHTML = (
           ? `<img src="${siteLogo}" alt="${siteName}" class="company-logo">`
           : `<div class="company-name">${siteName}</div>`
         }
-        <div>
-          ${siteAddress ? `<div class="company-address">${siteAddress}</div>` : ""}
+        ${siteAddress ? `<div class="company-address">${siteAddress}</div>` : ""}
       </div>
       <div class="invoice-title">
         <h2>Invoice</h2>
