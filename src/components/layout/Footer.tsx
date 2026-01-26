@@ -10,6 +10,8 @@ export const Footer = () => {
   const { t } = useLanguage();
   const { getSetting } = useSiteSettings();
   
+  const siteName = t(getSetting("site_name_bn", "আমিজুগ্লো"), getSetting("site_name", "Ameezuglow"));
+  const logoUrl = getSetting("logo_url", "");
   const copyrightText = getSetting("copyright_text", "");
   const footerText = getSetting("footer_text", "");
   const footerTextBn = getSetting("footer_text_bn", "আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো। প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট।");
@@ -62,9 +64,14 @@ export const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <span className="font-display text-3xl font-bold bg-gradient-to-r from-blush via-rose-gold to-accent bg-clip-text text-transparent">
-                Ameezuglow
-              </span>
+              <div className="flex items-center gap-2">
+                {logoUrl && (
+                  <img src={logoUrl} alt={siteName} className="h-10 w-auto object-contain" />
+                )}
+                <span className="font-display text-3xl font-bold bg-gradient-to-r from-blush via-rose-gold to-accent bg-clip-text text-transparent">
+                  {siteName}
+                </span>
+              </div>
             </Link>
             <p className="text-background/70 text-sm leading-relaxed mb-6">
               {t(footerTextBn || "আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো। প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট।", footerText || "Bring new light to your natural glow. Premium cosmetics & skincare products.")}
@@ -245,7 +252,7 @@ export const Footer = () => {
       <div className="border-t border-background/10 py-6">
         <div className="container mx-auto container-padding text-center text-sm text-background/50">
           <p>
-            {copyrightText || `© ${new Date().getFullYear()} Ameezuglow. ${t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}`}
+            {copyrightText || `© ${new Date().getFullYear()} ${siteName}. ${t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}`}
           </p>
         </div>
       </div>

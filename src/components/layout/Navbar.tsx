@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,11 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
+  const { getSetting } = useSiteSettings();
   const itemCount = useCartStore((state) => state.getItemCount());
+  
+  const siteName = t(getSetting("site_name_bn", "আমিজুগ্লো"), getSetting("site_name", "Ameezuglow"));
+  const logoUrl = getSetting("logo_url", "");
 
   const handleSignOut = async () => {
     try {
@@ -90,10 +95,13 @@ export const Navbar = () => {
             <Link to="/" className="flex items-center gap-2 group">
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="flex items-center"
+                className="flex items-center gap-2"
               >
+                {logoUrl && (
+                  <img src={logoUrl} alt={siteName} className="h-8 md:h-10 w-auto object-contain" />
+                )}
                 <span className="font-display text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
-                  Ameezuglow
+                  {siteName}
                 </span>
               </motion.div>
             </Link>

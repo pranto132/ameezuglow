@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { AdminSidebar } from "./AdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,8 @@ import { Button } from "@/components/ui/button";
 
 export const AdminLayout = () => {
   const { user, isLoading, signOut } = useAuth();
+  const { getSetting } = useSiteSettings();
+  const siteName = getSetting("site_name", "Ameezuglow");
   const location = useLocation();
 
   const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false);
@@ -119,7 +122,7 @@ export const AdminLayout = () => {
               <Menu className="w-5 h-5" />
             </SidebarTrigger>
             <div className="flex items-center gap-3 min-w-0">
-              <h1 className="font-display text-xl font-bold text-primary">Ameezuglow Admin</h1>
+              <h1 className="font-display text-xl font-bold text-primary">{siteName} Admin</h1>
               <Badge variant="secondary" className="truncate max-w-[45vw]">
                 {user.email}
               </Badge>

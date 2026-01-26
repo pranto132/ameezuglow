@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -14,6 +15,10 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading, signIn, signUp } = useAuth();
   const { t } = useLanguage();
+  const { getSetting } = useSiteSettings();
+  
+  const siteName = t(getSetting("site_name_bn", "আমিজুগ্লো"), getSetting("site_name", "Ameezuglow"));
+  const logoUrl = getSetting("logo_url", "");
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,8 +118,11 @@ const Auth = () => {
         <div className="bg-card rounded-2xl border border-border shadow-soft p-8">
           {/* Logo */}
           <div className="text-center mb-8">
+            {logoUrl && (
+              <img src={logoUrl} alt={siteName} className="h-12 w-auto mx-auto mb-2 object-contain" />
+            )}
             <h1 className="font-display text-2xl font-bold bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
-              Ameezuglow
+              {siteName}
             </h1>
             <p className="text-muted-foreground mt-2">
               {isSignUp ? t("নতুন অ্যাকাউন্ট তৈরি করুন", "Create a new account") : t("আপনার অ্যাকাউন্টে লগইন করুন", "Login to your account")}
