@@ -64,14 +64,13 @@ export const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <div className="flex items-center gap-2">
-                {logoUrl && (
-                  <img src={logoUrl} alt={siteName} className="h-10 w-auto object-contain" />
-                )}
+              {logoUrl ? (
+                <img src={logoUrl} alt={siteName} className="h-10 w-auto object-contain" />
+              ) : (
                 <span className="font-display text-3xl font-bold bg-gradient-to-r from-blush via-rose-gold to-accent bg-clip-text text-transparent">
                   {siteName}
                 </span>
-              </div>
+              )}
             </Link>
             <p className="text-background/70 text-sm leading-relaxed mb-6">
               {t(footerTextBn || "আপনার প্রাকৃতিক গ্লোকে দিন নতুন আলো। প্রিমিয়াম কসমেটিকস ও স্কিনকেয়ার প্রোডাক্ট।", footerText || "Bring new light to your natural glow. Premium cosmetics & skincare products.")}

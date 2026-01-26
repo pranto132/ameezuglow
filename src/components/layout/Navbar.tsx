@@ -95,14 +95,15 @@ export const Navbar = () => {
             <Link to="/" className="flex items-center gap-2 group">
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-2"
+                className="flex items-center"
               >
-                {logoUrl && (
+                {logoUrl ? (
                   <img src={logoUrl} alt={siteName} className="h-8 md:h-10 w-auto object-contain" />
+                ) : (
+                  <span className="font-display text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
+                    {siteName}
+                  </span>
                 )}
-                <span className="font-display text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-deep-rose to-rose-gold bg-clip-text text-transparent">
-                  {siteName}
-                </span>
               </motion.div>
             </Link>
 
