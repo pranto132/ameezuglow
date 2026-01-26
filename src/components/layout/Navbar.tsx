@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -152,6 +153,9 @@ export const Navbar = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-2">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+              
               {/* Language Switcher */}
               <LanguageSwitcher />
               
