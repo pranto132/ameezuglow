@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { FacebookPixel } from "@/components/FacebookPixel";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
@@ -36,13 +37,14 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <FacebookPixel />
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+      <LanguageProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <FacebookPixel />
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
@@ -76,9 +78,10 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </LanguageProvider>
+          </TooltipProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Menu, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const AdminLayout = () => {
   const { user, isLoading, signOut } = useAuth();
@@ -121,12 +122,13 @@ export const AdminLayout = () => {
             <SidebarTrigger className="mr-4">
               <Menu className="w-5 h-5" />
             </SidebarTrigger>
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <h1 className="font-display text-xl font-bold text-primary">{siteName} Admin</h1>
               <Badge variant="secondary" className="truncate max-w-[45vw]">
                 {user.email}
               </Badge>
             </div>
+            <ThemeToggle />
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
