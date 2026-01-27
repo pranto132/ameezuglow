@@ -30,8 +30,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Shield, Loader2, Trash2, KeyRound, RefreshCw } from "lucide-react";
+import { Users, UserPlus, Shield, Loader2, Trash2, KeyRound } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface UserWithRole {
   id: string;
@@ -46,6 +48,10 @@ const AdminUsers = () => {
   const { session } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -85,7 +91,7 @@ const AdminUsers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
-      toast({ title: "সফল!", description: "ইউজার তৈরি হয়েছে" });
+      toast({ title: t(tr.common.success), description: t(tr.users.userCreated) });
       setIsCreateOpen(false);
       setName("");
       setEmail("");
@@ -94,8 +100,8 @@ const AdminUsers = () => {
     },
     onError: (error: Error) => {
       toast({
-        title: "ত্রুটি",
-        description: error.message || "ইউজার তৈরি করতে সমস্যা হয়েছে",
+        title: t(tr.common.error),
+        description: error.message || t(tr.users.error),
         variant: "destructive",
       });
     },
@@ -112,12 +118,12 @@ const AdminUsers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
-      toast({ title: "সফল!", description: "রোল পরিবর্তন হয়েছে" });
+      toast({ title: t(tr.common.success), description: t(tr.users.roleChanged) });
     },
     onError: () => {
       toast({
-        title: "ত্রুটি",
-        description: "রোল পরিবর্তন করতে সমস্যা হয়েছে",
+        title: t(tr.common.error),
+        description: t(tr.users.error),
         variant: "destructive",
       });
     },
@@ -131,12 +137,12 @@ const AdminUsers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
-      toast({ title: "সফল!", description: "রোল সরানো হয়েছে" });
+      toast({ title: t(tr.common.success), description: t(tr.users.roleRemoved) });
     },
     onError: () => {
       toast({
-        title: "ত্রুটি",
-        description: "রোল সরাতে সমস্যা হয়েছে",
+        title: t(tr.common.error),
+        description: t(tr.users.error),
         variant: "destructive",
       });
     },
@@ -160,15 +166,15 @@ const AdminUsers = () => {
       return response.data;
     },
     onSuccess: () => {
-      toast({ title: "সফল!", description: "পাসওয়ার্ড রিসেট হয়েছে" });
+      toast({ title: t(tr.common.success), description: t(tr.users.passwordReset) });
       setIsResetOpen(false);
       setSelectedUserId(null);
       setNewPassword("");
     },
     onError: (error: Error) => {
       toast({
-        title: "ত্রুটি",
-        description: error.message || "পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে",
+        title: t(tr.common.error),
+        description: error.message || t(tr.users.error),
         variant: "destructive",
       });
     },
@@ -178,16 +184,16 @@ const AdminUsers = () => {
     e.preventDefault();
     if (!email || !password) {
       toast({
-        title: "ত্রুটি",
-        description: "ইমেইল এবং পাসওয়ার্ড প্রয়োজন",
+        title: t(tr.common.error),
+        description: t(tr.users.errorRequired),
         variant: "destructive",
       });
       return;
     }
     if (password.length < 6) {
       toast({
-        title: "ত্রুটি",
-        description: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+        title: t(tr.common.error),
+        description: t(tr.users.errorMinLength),
         variant: "destructive",
       });
       return;
@@ -199,16 +205,16 @@ const AdminUsers = () => {
     e.preventDefault();
     if (!selectedUserId || !newPassword) {
       toast({
-        title: "ত্রুটি",
-        description: "নতুন পাসওয়ার্ড প্রয়োজন",
+        title: t(tr.common.error),
+        description: t(tr.users.errorNewPasswordRequired),
         variant: "destructive",
       });
       return;
     }
     if (newPassword.length < 6) {
       toast({
-        title: "ত্রুটি",
-        description: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+        title: t(tr.common.error),
+        description: t(tr.users.errorMinLength),
         variant: "destructive",
       });
       return;
@@ -229,12 +235,12 @@ const AdminUsers = () => {
 
   const getRoleBadge = (role: string | null) => {
     if (role === "admin") {
-      return <Badge className="bg-red-500/10 text-red-500">অ্যাডমিন</Badge>;
+      return <Badge className="bg-red-500/10 text-red-500">{t(tr.users.admin)}</Badge>;
     }
     if (role === "staff") {
-      return <Badge className="bg-blue-500/10 text-blue-500">স্টাফ</Badge>;
+      return <Badge className="bg-blue-500/10 text-blue-500">{t(tr.users.staff)}</Badge>;
     }
-    return <Badge variant="secondary">কোন রোল নেই</Badge>;
+    return <Badge variant="secondary">{t(tr.users.noRole)}</Badge>;
   };
 
   if (isLoading) {
@@ -249,33 +255,33 @@ const AdminUsers = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">ইউজার ম্যানেজমেন্ট</h2>
-          <p className="text-muted-foreground">অ্যাডমিন এবং স্টাফ অ্যাকাউন্ট পরিচালনা করুন</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t(tr.users.title)}</h2>
+          <p className="text-muted-foreground">{t(tr.users.subtitle)}</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button>
               <UserPlus className="w-4 h-4 mr-2" />
-              নতুন ইউজার
+              {t(tr.users.addUser)}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>নতুন ইউজার তৈরি করুন</DialogTitle>
+              <DialogTitle>{t(tr.users.createUser)}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateUser} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">নাম</Label>
+                <Label htmlFor="name">{t(tr.users.name)}</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="ইউজারের নাম"
+                  placeholder={t(tr.users.namePlaceholder)}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">ইমেইল</Label>
+                <Label htmlFor="email">{t(tr.users.email)}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -286,11 +292,11 @@ const AdminUsers = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">পাসওয়ার্ড</Label>
+                <Label htmlFor="password">{t(tr.users.password)}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="কমপক্ষে ৬ অক্ষর"
+                  placeholder={t(tr.users.passwordPlaceholder)}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -298,14 +304,14 @@ const AdminUsers = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role">রোল</Label>
+                <Label htmlFor="role">{t(tr.users.role)}</Label>
                 <Select value={role} onValueChange={(v) => setRole(v as "admin" | "staff")}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="staff">স্টাফ</SelectItem>
-                    <SelectItem value="admin">অ্যাডমিন</SelectItem>
+                    <SelectItem value="staff">{t(tr.users.staff)}</SelectItem>
+                    <SelectItem value="admin">{t(tr.users.admin)}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -313,10 +319,10 @@ const AdminUsers = () => {
                 {createUserMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    তৈরি হচ্ছে...
+                    {t(tr.users.creating)}
                   </>
                 ) : (
-                  "ইউজার তৈরি করুন"
+                  t(tr.users.createUserBtn)
                 )}
               </Button>
             </form>
@@ -333,7 +339,7 @@ const AdminUsers = () => {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">মোট ইউজার</p>
+                <p className="text-sm text-muted-foreground">{t(tr.users.totalUsers)}</p>
                 <p className="text-2xl font-bold">{users?.length || 0}</p>
               </div>
             </div>
@@ -346,7 +352,7 @@ const AdminUsers = () => {
                 <Shield className="w-6 h-6 text-red-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">অ্যাডমিন</p>
+                <p className="text-sm text-muted-foreground">{t(tr.users.admin)}</p>
                 <p className="text-2xl font-bold">
                   {users?.filter((u) => u.role === "admin").length || 0}
                 </p>
@@ -361,7 +367,7 @@ const AdminUsers = () => {
                 <Users className="w-6 h-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">স্টাফ</p>
+                <p className="text-sm text-muted-foreground">{t(tr.users.staff)}</p>
                 <p className="text-2xl font-bold">
                   {users?.filter((u) => u.role === "staff").length || 0}
                 </p>
@@ -376,18 +382,18 @@ const AdminUsers = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            ইউজার তালিকা
+            {t(tr.users.userList)}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>নাম</TableHead>
-                <TableHead>ইমেইল</TableHead>
-                <TableHead>রোল</TableHead>
-                <TableHead>তৈরির তারিখ</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(tr.users.name)}</TableHead>
+                <TableHead>{t(tr.users.email)}</TableHead>
+                <TableHead>{t(tr.users.role)}</TableHead>
+                <TableHead>{t(tr.users.createdAt)}</TableHead>
+                <TableHead className="text-right">{t(tr.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -412,10 +418,10 @@ const AdminUsers = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="staff">
-                          <Badge className="bg-blue-500/10 text-blue-500">স্টাফ</Badge>
+                          <Badge className="bg-blue-500/10 text-blue-500">{t(tr.users.staff)}</Badge>
                         </SelectItem>
                         <SelectItem value="admin">
-                          <Badge className="bg-red-500/10 text-red-500">অ্যাডমিন</Badge>
+                          <Badge className="bg-red-500/10 text-red-500">{t(tr.users.admin)}</Badge>
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -430,7 +436,7 @@ const AdminUsers = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => openResetDialog(user.id)}
-                      title="পাসওয়ার্ড রিসেট"
+                      title={t(tr.users.resetPassword)}
                     >
                       <KeyRound className="w-4 h-4 text-amber-500" />
                     </Button>
@@ -440,7 +446,7 @@ const AdminUsers = () => {
                         size="icon"
                         onClick={() => deleteRoleMutation.mutate(user.role_id!)}
                         disabled={deleteRoleMutation.isPending}
-                        title="ডিলিট"
+                        title={t(tr.common.delete)}
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
@@ -451,7 +457,7 @@ const AdminUsers = () => {
               {(!users || users.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    কোন ইউজার পাওয়া যায়নি
+                    {t(tr.users.noUsers)}
                   </TableCell>
                 </TableRow>
               )}
@@ -464,15 +470,15 @@ const AdminUsers = () => {
       <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>পাসওয়ার্ড রিসেট করুন</DialogTitle>
+            <DialogTitle>{t(tr.users.resetPassword)}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="newPassword">নতুন পাসওয়ার্ড</Label>
+              <Label htmlFor="newPassword">{t(tr.users.newPassword)}</Label>
               <Input
                 id="newPassword"
                 type="password"
-                placeholder="কমপক্ষে ৬ অক্ষর"
+                placeholder={t(tr.users.passwordPlaceholder)}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -483,10 +489,10 @@ const AdminUsers = () => {
               {resetPasswordMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  রিসেট হচ্ছে...
+                  {t(tr.users.resetting)}
                 </>
               ) : (
-                "পাসওয়ার্ড রিসেট করুন"
+                t(tr.users.reset)
               )}
             </Button>
           </form>

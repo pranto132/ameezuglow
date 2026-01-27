@@ -14,26 +14,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Search, Eye, Loader2, FileText, Truck, Trash2, CheckSquare, ExternalLink, Printer } from "lucide-react";
-
-const statusOptions = [
-  { value: "pending", label: "পেন্ডিং", color: "bg-orange-100 text-orange-700" },
-  { value: "confirmed", label: "কনফার্মড", color: "bg-blue-100 text-blue-700" },
-  { value: "processing", label: "প্রসেসিং", color: "bg-purple-100 text-purple-700" },
-  { value: "shipped", label: "শিপড", color: "bg-indigo-100 text-indigo-700" },
-  { value: "delivered", label: "ডেলিভার্ড", color: "bg-green-100 text-green-700" },
-  { value: "cancelled", label: "ক্যান্সেলড", color: "bg-red-100 text-red-700" },
-];
-
-const paymentStatusOptions = [
-  { value: "pending", label: "পেন্ডিং", color: "bg-yellow-100 text-yellow-700" },
-  { value: "awaiting_verification", label: "ভেরিফাই অপেক্ষায়", color: "bg-orange-100 text-orange-700" },
-  { value: "verified", label: "ভেরিফাইড", color: "bg-green-100 text-green-700" },
-  { value: "rejected", label: "প্রত্যাখ্যাত", color: "bg-red-100 text-red-700" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 const AdminOrders = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+  
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -45,6 +35,22 @@ const AdminOrders = () => {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [bulkActionOpen, setBulkActionOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<string>("");
+
+  const statusOptions = [
+    { value: "pending", label: t(tr.orderStatus.pending), color: "bg-orange-100 text-orange-700" },
+    { value: "confirmed", label: t(tr.orderStatus.confirmed), color: "bg-blue-100 text-blue-700" },
+    { value: "processing", label: t(tr.orderStatus.processing), color: "bg-purple-100 text-purple-700" },
+    { value: "shipped", label: t(tr.orderStatus.shipped), color: "bg-indigo-100 text-indigo-700" },
+    { value: "delivered", label: t(tr.orderStatus.delivered), color: "bg-green-100 text-green-700" },
+    { value: "cancelled", label: t(tr.orderStatus.cancelled), color: "bg-red-100 text-red-700" },
+  ];
+
+  const paymentStatusOptions = [
+    { value: "pending", label: t(tr.paymentStatus.pending), color: "bg-yellow-100 text-yellow-700" },
+    { value: "awaiting_verification", label: t(tr.paymentStatus.awaiting_verification), color: "bg-orange-100 text-orange-700" },
+    { value: "verified", label: t(tr.paymentStatus.verified), color: "bg-green-100 text-green-700" },
+    { value: "rejected", label: t(tr.paymentStatus.rejected), color: "bg-red-100 text-red-700" },
+  ];
 
   useEffect(() => {
     const channel = supabase
@@ -123,7 +129,7 @@ const AdminOrders = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      toast.success("অর্ডার স্ট্যাটাস আপডেট হয়েছে");
+      toast.success(t(tr.toasts.orderUpdated));
     },
   });
 
@@ -144,13 +150,13 @@ const AdminOrders = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       if (variables.payment_status === "verified") {
-        toast.success("পেমেন্ট ভেরিফাইড এবং অর্ডার কনফার্মড হয়েছে");
+        toast.success(t(tr.toasts.paymentVerified));
       } else {
-        toast.success("পেমেন্ট স্ট্যাটাস আপডেট হয়েছে");
+        toast.success(t(tr.toasts.paymentUpdated));
       }
     },
     onError: () => {
-      toast.error("পেমেন্ট স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে");
+      toast.error(t(tr.toasts.somethingWrong));
     },
   });
 
@@ -168,12 +174,12 @@ const AdminOrders = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      toast.success("কুরিয়ার অ্যাসাইন করা হয়েছে");
+      toast.success(t(tr.toasts.courierAssigned));
       setCourierDialogOrder(null);
       setCourierFormData({ courier_name: "", tracking_number: "" });
     },
     onError: () => {
-      toast.error("কুরিয়ার অ্যাসাইন করতে সমস্যা হয়েছে");
+      toast.error(t(tr.toasts.somethingWrong));
     },
   });
 
@@ -195,10 +201,10 @@ const AdminOrders = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      toast.success("অর্ডার ডিলিট করা হয়েছে");
+      toast.success(t(tr.toasts.orderDeleted));
     },
     onError: () => {
-      toast.error("অর্ডার ডিলিট করতে সমস্যা হয়েছে");
+      toast.error(t(tr.toasts.somethingWrong));
     },
   });
 
@@ -221,10 +227,10 @@ const AdminOrders = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       setSelectedOrders([]);
-      toast.success(`${selectedOrders.length}টি অর্ডার ডিলিট করা হয়েছে`);
+      toast.success(t(tr.toasts.orderDeleted));
     },
     onError: () => {
-      toast.error("অর্ডার ডিলিট করতে সমস্যা হয়েছে");
+      toast.error(t(tr.toasts.somethingWrong));
     },
   });
 
@@ -241,10 +247,10 @@ const AdminOrders = () => {
       setSelectedOrders([]);
       setBulkActionOpen(false);
       setBulkStatus("");
-      toast.success(`${selectedOrders.length}টি অর্ডারের স্ট্যাটাস আপডেট হয়েছে`);
+      toast.success(t(tr.toasts.orderUpdated));
     },
     onError: () => {
-      toast.error("স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে");
+      toast.error(t(tr.toasts.somethingWrong));
     },
   });
 
@@ -315,8 +321,8 @@ const AdminOrders = () => {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-display font-bold text-foreground">অর্ডার ম্যানেজমেন্ট</h1>
-        <p className="text-muted-foreground">{orders?.length || 0} টি অর্ডার</p>
+        <h1 className="text-2xl font-display font-bold text-foreground">{t(tr.orders.title)}</h1>
+        <p className="text-muted-foreground">{orders?.length || 0}{t(tr.orders.ordersCount)}</p>
       </motion.div>
 
       {/* Filters */}
@@ -324,7 +330,7 @@ const AdminOrders = () => {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="অর্ডার নম্বর, নাম বা ফোন দিয়ে খুঁজুন..."
+            placeholder={t(tr.orders.searchPlaceholder)}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -332,10 +338,10 @@ const AdminOrders = () => {
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="স্ট্যাটাস ফিল্টার" />
+            <SelectValue placeholder={t(tr.orders.statusFilter)} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">সব অর্ডার</SelectItem>
+            <SelectItem value="all">{t(tr.orders.allOrders)}</SelectItem>
             {statusOptions.map((status) => (
               <SelectItem key={status.value} value={status.value}>
                 {status.label}
@@ -354,25 +360,25 @@ const AdminOrders = () => {
         >
           <div className="flex items-center gap-2">
             <CheckSquare className="w-5 h-5 text-primary" />
-            <span className="font-medium">{selectedOrders.length}টি অর্ডার সিলেক্টেড</span>
+            <span className="font-medium">{selectedOrders.length}{t(tr.orders.ordersSelected)}</span>
           </div>
           <div className="flex items-center gap-2 ml-auto">
             {/* Bulk Status Update */}
             <Dialog open={bulkActionOpen} onOpenChange={setBulkActionOpen}>
               <Button variant="outline" size="sm" onClick={() => setBulkActionOpen(true)}>
-                স্ট্যাটাস পরিবর্তন
+                {t(tr.orders.changeStatus)}
               </Button>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>বাল্ক স্ট্যাটাস আপডেট</DialogTitle>
+                  <DialogTitle>{t(tr.orders.bulkStatusUpdate)}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <p className="text-sm text-muted-foreground">
-                    {selectedOrders.length}টি অর্ডারের স্ট্যাটাস পরিবর্তন হবে
+                    {selectedOrders.length}{t(tr.orders.ordersSelected)}
                   </p>
                   <Select value={bulkStatus} onValueChange={setBulkStatus}>
                     <SelectTrigger>
-                      <SelectValue placeholder="নতুন স্ট্যাটাস সিলেক্ট করুন" />
+                      <SelectValue placeholder={t(tr.orders.selectNewStatus)} />
                     </SelectTrigger>
                     <SelectContent>
                       {statusOptions.map((status) => (
@@ -384,14 +390,14 @@ const AdminOrders = () => {
                   </Select>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setBulkActionOpen(false)}>
-                      বাতিল
+                      {t(tr.orders.cancel)}
                     </Button>
                     <Button
                       onClick={handleBulkStatusUpdate}
                       disabled={!bulkStatus || bulkStatusMutation.isPending}
                     >
                       {bulkStatusMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      আপডেট করুন
+                      {t(tr.orders.update)}
                     </Button>
                   </div>
                 </div>
@@ -405,7 +411,7 @@ const AdminOrders = () => {
               onClick={() => openMultipleInvoicesInNewTab(selectedOrders)}
             >
               <Printer className="w-4 h-4 mr-1" />
-              ইনভয়েস প্রিন্ট
+              {t(tr.orders.printInvoice)}
             </Button>
 
             {/* Bulk Delete */}
@@ -413,32 +419,31 @@ const AdminOrders = () => {
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm">
                   <Trash2 className="w-4 h-4 mr-1" />
-                  ডিলিট
+                  {t(tr.orders.delete)}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>অর্ডার ডিলিট করুন?</AlertDialogTitle>
+                  <AlertDialogTitle>{t(tr.orders.deleteOrder)}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    আপনি কি নিশ্চিত যে আপনি {selectedOrders.length}টি অর্ডার ডিলিট করতে চান?
-                    এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
+                    {t(tr.orders.deleteConfirm)} {t(tr.orders.cannotUndo)}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>বাতিল</AlertDialogCancel>
+                  <AlertDialogCancel>{t(tr.orders.cancel)}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => bulkDeleteMutation.mutate(selectedOrders)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     {bulkDeleteMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    ডিলিট করুন
+                    {t(tr.orders.delete)}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
 
             <Button variant="ghost" size="sm" onClick={() => setSelectedOrders([])}>
-              বাতিল করুন
+              {t(tr.orders.cancel)}
             </Button>
           </div>
         </motion.div>
@@ -448,12 +453,12 @@ const AdminOrders = () => {
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {ordersError ? (
           <div className="p-8 text-center space-y-2">
-            <p className="font-medium text-foreground">অর্ডার দেখা যাচ্ছে না</p>
+            <p className="font-medium text-foreground">{t(tr.orders.noOrdersFound)}</p>
             <p className="text-sm text-muted-foreground">
-              আপনার অ্যাকাউন্টে অ্যাডমিন পারমিশন নেই অথবা লগইন সেশন ঠিক নেই।
+              {t(tr.accessDenied.message)}
             </p>
             <Button variant="outline" onClick={() => window.location.assign("/admin/login")}>
-              আবার লগইন করুন
+              {t(tr.accessDenied.loginAgain)}
             </Button>
           </div>
         ) : isLoading ? (
@@ -470,14 +475,14 @@ const AdminOrders = () => {
                     onCheckedChange={toggleSelectAll}
                   />
                 </TableHead>
-                <TableHead>অর্ডার নম্বর</TableHead>
-                <TableHead>গ্রাহক</TableHead>
-                <TableHead>মোট</TableHead>
-                <TableHead>পেমেন্ট</TableHead>
-                <TableHead>পেমেন্ট স্ট্যাটাস</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead>তারিখ</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(tr.orders.orderNumber)}</TableHead>
+                <TableHead>{t(tr.orders.customer)}</TableHead>
+                <TableHead>{t(tr.orders.total)}</TableHead>
+                <TableHead>{t(tr.orders.payment)}</TableHead>
+                <TableHead>{t(tr.paymentStatus.pending).replace("পেন্ডিং", t(tr.orders.payment))} {t(tr.orders.status)}</TableHead>
+                <TableHead>{t(tr.orders.status)}</TableHead>
+                <TableHead>{t(tr.customers.date)}</TableHead>
+                <TableHead className="text-right">{t(tr.orders.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -543,7 +548,7 @@ const AdminOrders = () => {
                         className="h-7 text-xs"
                       >
                         <Truck className="w-3 h-3 mr-1" />
-                        অ্যাসাইন করুন
+                        {t(tr.orders.assign)}
                       </Button>
                     )}
                   </TableCell>
@@ -567,37 +572,36 @@ const AdminOrders = () => {
                     </Select>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(order.created_at).toLocaleDateString("bn-BD")}
+                    {new Date(order.created_at).toLocaleDateString(language === "bn" ? "bn-BD" : "en-US")}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(order)} title="বিস্তারিত">
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(order)} title={t(tr.common.view)}>
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(order)} title="ইনভয়েস">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(order)} title={t(tr.orders.printInvoice)}>
                         <FileText className="w-4 h-4" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" title="ডিলিট">
+                          <Button variant="ghost" size="icon" title={t(tr.orders.delete)}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>অর্ডার ডিলিট করুন?</AlertDialogTitle>
+                            <AlertDialogTitle>{t(tr.orders.deleteOrder)}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              আপনি কি নিশ্চিত যে আপনি অর্ডার #{order.order_number} ডিলিট করতে চান?
-                              এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
+                              {t(tr.orders.deleteConfirm)} {t(tr.orders.cannotUndo)}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+                            <AlertDialogCancel>{t(tr.orders.cancel)}</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => deleteOrderMutation.mutate(order.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
-                              ডিলিট করুন
+                              {t(tr.orders.delete)}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -615,22 +619,22 @@ const AdminOrders = () => {
       <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>অর্ডার বিবরণ - {selectedOrder?.order_number}</DialogTitle>
+            <DialogTitle>{t(tr.orders.orderDetails)} - {selectedOrder?.order_number}</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-6 mt-4">
               {/* Customer Info */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">গ্রাহক তথ্য</h3>
-                  <p className="text-sm"><strong>নাম:</strong> {selectedOrder.customer_name}</p>
-                  <p className="text-sm"><strong>ফোন:</strong> {selectedOrder.customer_phone}</p>
+                  <h3 className="font-semibold mb-2">{t(tr.orders.customer)}</h3>
+                  <p className="text-sm"><strong>{t(tr.customers.name)}:</strong> {selectedOrder.customer_name}</p>
+                  <p className="text-sm"><strong>{t(tr.customers.phone)}:</strong> {selectedOrder.customer_phone}</p>
                   {selectedOrder.customer_email && (
-                    <p className="text-sm"><strong>ইমেইল:</strong> {selectedOrder.customer_email}</p>
+                    <p className="text-sm"><strong>{t(tr.customers.email)}:</strong> {selectedOrder.customer_email}</p>
                   )}
                 </div>
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">ডেলিভারি ঠিকানা</h3>
+                  <h3 className="font-semibold mb-2">{t(tr.orders.shippingAddress)}</h3>
                   <p className="text-sm">{selectedOrder.shipping_address}</p>
                   <p className="text-sm">{selectedOrder.area}, {selectedOrder.city}</p>
                 </div>
@@ -640,31 +644,31 @@ const AdminOrders = () => {
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold flex items-center gap-2">
-                    <Truck className="w-4 h-4" /> কুরিয়ার তথ্য
+                    <Truck className="w-4 h-4" /> {t(tr.orders.courier)}
                   </h3>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleOpenCourierDialog(selectedOrder)}
                   >
-                    {selectedOrder.courier_name ? "এডিট" : "অ্যাসাইন করুন"}
+                    {selectedOrder.courier_name ? t(tr.common.edit) : t(tr.orders.assign)}
                   </Button>
                 </div>
                 {selectedOrder.courier_name ? (
                   <div className="space-y-1">
-                    <p className="text-sm"><strong>কুরিয়ার:</strong> {selectedOrder.courier_name}</p>
+                    <p className="text-sm"><strong>{t(tr.orders.courier)}:</strong> {selectedOrder.courier_name}</p>
                     {selectedOrder.tracking_number && (
-                      <p className="text-sm"><strong>ট্র্যাকিং নম্বর:</strong> {selectedOrder.tracking_number}</p>
+                      <p className="text-sm"><strong>{t(tr.orders.trackingNumber)}:</strong> {selectedOrder.tracking_number}</p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">কুরিয়ার অ্যাসাইন করা হয়নি</p>
+                  <p className="text-sm text-muted-foreground">{t(tr.orders.selectCourier)}</p>
                 )}
               </div>
 
               {/* Order Items */}
               <div>
-                <h3 className="font-semibold mb-2">অর্ডার আইটেম</h3>
+                <h3 className="font-semibold mb-2">{t(tr.orders.orderedItems)}</h3>
                 <div className="space-y-2">
                   {orderItems?.map((item: any) => (
                     <div key={item.id} className="flex justify-between p-3 bg-muted/50 rounded-lg">
@@ -681,21 +685,21 @@ const AdminOrders = () => {
               {/* Order Summary */}
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>সাবটোটাল</span>
+                  <span>{t(tr.orders.subtotal)}</span>
                   <span>৳{Number(selectedOrder.subtotal).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>ডেলিভারি</span>
+                  <span>{t(tr.orders.shipping)}</span>
                   <span>৳{Number(selectedOrder.shipping_cost).toLocaleString()}</span>
                 </div>
                 {Number(selectedOrder.discount) > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
-                    <span>ডিসকাউন্ট</span>
+                    <span>{t(tr.orders.discount)}</span>
                     <span>-৳{Number(selectedOrder.discount).toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-lg font-bold border-t pt-2">
-                  <span>মোট</span>
+                  <span>{t(tr.orders.grandTotal)}</span>
                   <span className="text-primary">৳{Number(selectedOrder.total).toLocaleString()}</span>
                 </div>
               </div>
@@ -703,20 +707,20 @@ const AdminOrders = () => {
               {/* Payment & Status */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">পেমেন্ট তথ্য</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t(tr.orders.paymentMethod)}</p>
                   <p className="font-medium capitalize">{selectedOrder.payment_method}</p>
                   {selectedOrder.transaction_id && (
                     <p className="text-sm mt-1">
-                      <strong>Transaction ID:</strong> {selectedOrder.transaction_id}
+                      <strong>{t(tr.orders.transactionId)}:</strong> {selectedOrder.transaction_id}
                     </p>
                   )}
                   {selectedOrder.sender_number && (
                     <p className="text-sm mt-1">
-                      <strong>সেন্ডার নম্বর:</strong> {selectedOrder.sender_number}
+                      <strong>{t(tr.orders.senderNumber)}:</strong> {selectedOrder.sender_number}
                     </p>
                   )}
                   <div className="mt-3 pt-3 border-t">
-                    <p className="text-sm text-muted-foreground mb-2">পেমেন্ট স্ট্যাটাস</p>
+                    <p className="text-sm text-muted-foreground mb-2">{t(tr.orders.payment)} {t(tr.orders.status)}</p>
                     <Select
                       value={selectedOrder.payment_status || "pending"}
                       onValueChange={(value) =>
@@ -737,7 +741,7 @@ const AdminOrders = () => {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">অর্ডার স্ট্যাটাস</p>
+                  <p className="text-sm text-muted-foreground">{t(tr.orders.status)}</p>
                   <span className={`inline-block px-3 py-1 rounded-full text-sm ${getStatusColor(selectedOrder.order_status)}`}>
                     {getStatusLabel(selectedOrder.order_status)}
                   </span>
@@ -746,7 +750,7 @@ const AdminOrders = () => {
 
               {selectedOrder.notes && (
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="font-semibold mb-1">গ্রাহকের নোট</h3>
+                  <h3 className="font-semibold mb-1">{t(tr.orders.notes)}</h3>
                   <p className="text-sm">{selectedOrder.notes}</p>
                 </div>
               )}
@@ -758,7 +762,7 @@ const AdminOrders = () => {
                   handleOpenInvoice(selectedOrder);
                 }}>
                   <ExternalLink className="w-4 h-4 mr-2" />
-                  ইনভয়েস দেখুন
+                  {t(tr.orders.printInvoice)}
                 </Button>
               </div>
             </div>
@@ -772,25 +776,25 @@ const AdminOrders = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Truck className="w-5 h-5" />
-              কুরিয়ার অ্যাসাইন করুন
+              {t(tr.orders.assignCourier)}
             </DialogTitle>
           </DialogHeader>
           {courierDialogOrder && (
             <form onSubmit={handleAssignCourier} className="space-y-4 mt-4">
               <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                <p><strong>অর্ডার:</strong> {courierDialogOrder.order_number}</p>
-                <p><strong>গ্রাহক:</strong> {courierDialogOrder.customer_name}</p>
-                <p><strong>ঠিকানা:</strong> {courierDialogOrder.shipping_address}, {courierDialogOrder.city}</p>
+                <p><strong>{t(tr.orders.orderNumber)}:</strong> {courierDialogOrder.order_number}</p>
+                <p><strong>{t(tr.orders.customer)}:</strong> {courierDialogOrder.customer_name}</p>
+                <p><strong>{t(tr.orders.shippingAddress)}:</strong> {courierDialogOrder.shipping_address}, {courierDialogOrder.city}</p>
               </div>
 
               <div>
-                <Label>কুরিয়ার সার্ভিস</Label>
+                <Label>{t(tr.orders.selectCourier)}</Label>
                 <Select
                   value={courierFormData.courier_name}
                   onValueChange={(value) => setCourierFormData((p) => ({ ...p, courier_name: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="কুরিয়ার সিলেক্ট করুন" />
+                    <SelectValue placeholder={t(tr.orders.selectCourier)} />
                   </SelectTrigger>
                   <SelectContent>
                     {courierServices?.map((courier) => (
@@ -798,7 +802,7 @@ const AdminOrders = () => {
                         <div className="flex items-center gap-2">
                           <span>{courier.name}</span>
                           {courier.api_key && (
-                            <span className="text-xs text-green-600">(API কানেক্টেড)</span>
+                            <span className="text-xs text-green-600">({t(tr.couriers.apiConnected)})</span>
                           )}
                         </div>
                       </SelectItem>
@@ -808,17 +812,17 @@ const AdminOrders = () => {
               </div>
 
               <div>
-                <Label>ট্র্যাকিং নম্বর (ঐচ্ছিক)</Label>
+                <Label>{t(tr.orders.trackingNumber)}</Label>
                 <Input
                   value={courierFormData.tracking_number}
                   onChange={(e) => setCourierFormData((p) => ({ ...p, tracking_number: e.target.value }))}
-                  placeholder="কুরিয়ার থেকে পাওয়া ট্র্যাকিং নম্বর"
+                  placeholder={t(tr.orders.trackingNumber)}
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setCourierDialogOrder(null)}>
-                  বাতিল
+                  {t(tr.orders.cancel)}
                 </Button>
                 <Button 
                   type="submit" 
@@ -826,7 +830,7 @@ const AdminOrders = () => {
                   className="btn-primary"
                 >
                   {assignCourierMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  অ্যাসাইন করুন
+                  {t(tr.orders.assign)}
                 </Button>
               </div>
             </form>

@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save, Loader2, Home, Sparkles, Gift, MessageSquare, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface SiteSetting {
   id: string;
@@ -105,6 +107,9 @@ const AdminHomepage = () => {
   const [settings, setSettings] = useState<Record<string, string>>(defaultSettings);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
 
   const { data: siteSettings, isLoading } = useQuery({
     queryKey: ["admin-homepage-settings"],
@@ -155,10 +160,10 @@ const AdminHomepage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-homepage-settings"] });
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
-      toast({ title: "হোমপেজ সেটিংস সংরক্ষিত হয়েছে" });
+      toast({ title: t(tr.homepage.settingsSaved) });
     },
     onError: () => {
-      toast({ title: "সেটিংস সংরক্ষণ ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.homepage.settingsError), variant: "destructive" });
     },
   });
 
@@ -182,8 +187,8 @@ const AdminHomepage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">হোমপেজ কাস্টমাইজেশন</h2>
-          <p className="text-muted-foreground">হোমপেজের সব এলিমেন্ট এডিট করুন</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t(tr.homepage.title)}</h2>
+          <p className="text-muted-foreground">{t(tr.homepage.subtitle)}</p>
         </div>
         <Button onClick={handleSave} disabled={saveMutation.isPending}>
           {saveMutation.isPending ? (
@@ -191,7 +196,7 @@ const AdminHomepage = () => {
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          সংরক্ষণ করুন
+          {t(tr.homepage.save)}
         </Button>
       </div>
 
@@ -199,23 +204,23 @@ const AdminHomepage = () => {
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="hero" className="flex items-center gap-1">
             <Home className="w-4 h-4" />
-            হিরো
+            {t(tr.homepage.heroTab)}
           </TabsTrigger>
           <TabsTrigger value="categories" className="flex items-center gap-1">
             <Sparkles className="w-4 h-4" />
-            ক্যাটাগরি
+            {t(tr.homepage.categoriesTab)}
           </TabsTrigger>
           <TabsTrigger value="offer" className="flex items-center gap-1">
             <Gift className="w-4 h-4" />
-            অফার
+            {t(tr.homepage.offerTab)}
           </TabsTrigger>
           <TabsTrigger value="why" className="flex items-center gap-1">
             <Users className="w-4 h-4" />
-            কেন আমরা
+            {t(tr.homepage.whyTab)}
           </TabsTrigger>
           <TabsTrigger value="testimonials" className="flex items-center gap-1">
             <MessageSquare className="w-4 h-4" />
-            রিভিউ
+            {t(tr.homepage.testimonialsTab)}
           </TabsTrigger>
         </TabsList>
 
@@ -223,8 +228,8 @@ const AdminHomepage = () => {
         <TabsContent value="hero" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>হিরো সেকশন</CardTitle>
-              <CardDescription>মেইন ব্যানার এরিয়া কাস্টমাইজ করুন</CardDescription>
+              <CardTitle>{t(tr.homepage.heroSection)}</CardTitle>
+              <CardDescription>{t(tr.homepage.heroSectionDesc)}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ImageUpload
