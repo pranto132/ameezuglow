@@ -11,6 +11,8 @@ import { Settings, Save, Globe, Phone, MapPin, Share2, Loader2, Image, Facebook,
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface SiteSetting {
   id: string;
@@ -65,6 +67,8 @@ const AdminSettings = () => {
   const [settings, setSettings] = useState<Record<string, string>>(defaultSettings);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
 
   const { data: siteSettings, isLoading } = useQuery({
     queryKey: ["admin-site-settings"],
@@ -113,10 +117,10 @@ const AdminSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-site-settings"] });
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
-      toast({ title: "সেটিংস সংরক্ষিত হয়েছে" });
+      toast({ title: t(adminTranslations.toasts.settingsSaved) });
     },
     onError: () => {
-      toast({ title: "সেটিংস সংরক্ষণ ব্যর্থ", variant: "destructive" });
+      toast({ title: t(adminTranslations.toasts.settingsError), variant: "destructive" });
     },
   });
 
@@ -140,8 +144,8 @@ const AdminSettings = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">সাইট সেটিংস</h2>
-          <p className="text-muted-foreground">ওয়েবসাইটের সাধারণ সেটিংস পরিচালনা করুন</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t(adminTranslations.settings.title)}</h2>
+          <p className="text-muted-foreground">{t(adminTranslations.settings.subtitle)}</p>
         </div>
         <Button onClick={handleSave} disabled={saveMutation.isPending}>
           {saveMutation.isPending ? (
@@ -149,17 +153,17 @@ const AdminSettings = () => {
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          সংরক্ষণ করুন
+          {t(adminTranslations.settings.save)}
         </Button>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid grid-cols-3 sm:grid-cols-5 w-full h-auto gap-1 p-1">
-          <TabsTrigger value="general" className="text-xs sm:text-sm py-2">সাধারণ</TabsTrigger>
-          <TabsTrigger value="contact" className="text-xs sm:text-sm py-2">যোগাযোগ</TabsTrigger>
-          <TabsTrigger value="social" className="text-xs sm:text-sm py-2">সোশ্যাল</TabsTrigger>
-          <TabsTrigger value="facebook-pixel" className="text-xs sm:text-sm py-2">Pixel</TabsTrigger>
-          <TabsTrigger value="seo" className="text-xs sm:text-sm py-2">SEO</TabsTrigger>
+          <TabsTrigger value="general" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.general)}</TabsTrigger>
+          <TabsTrigger value="contact" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.contact)}</TabsTrigger>
+          <TabsTrigger value="social" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.social)}</TabsTrigger>
+          <TabsTrigger value="facebook-pixel" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.pixel)}</TabsTrigger>
+          <TabsTrigger value="seo" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.seo)}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">

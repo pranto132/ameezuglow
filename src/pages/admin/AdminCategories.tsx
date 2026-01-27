@@ -11,9 +11,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 const AdminCategories = () => {
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -57,11 +61,11 @@ const AdminCategories = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
-      toast.success(editingCategory ? "ক্যাটাগরি আপডেট হয়েছে" : "ক্যাটাগরি যুক্ত হয়েছে");
+      toast.success(t(adminTranslations.toasts.categorySaved));
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => toast.error("কিছু ভুল হয়েছে"),
+    onError: () => toast.error(t(adminTranslations.toasts.somethingWrong)),
   });
 
   const deleteMutation = useMutation({
@@ -71,7 +75,7 @@ const AdminCategories = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
-      toast.success("ক্যাটাগরি ডিলিট হয়েছে");
+      toast.success(t(adminTranslations.toasts.categoryDeleted));
     },
   });
 
@@ -97,42 +101,42 @@ const AdminCategories = () => {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">ক্যাটাগরি ম্যানেজমেন্ট</h1>
-          <p className="text-muted-foreground">{categories?.length || 0} টি ক্যাটাগরি</p>
+          <h1 className="text-2xl font-display font-bold text-foreground">{t(adminTranslations.categories.title)}</h1>
+          <p className="text-muted-foreground">{categories?.length || 0}{t(adminTranslations.categories.categoriesCount)}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="btn-primary"><Plus className="w-4 h-4 mr-2" /> নতুন ক্যাটাগরি</Button>
+            <Button className="btn-primary"><Plus className="w-4 h-4 mr-2" /> {t(adminTranslations.categories.addCategory)}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingCategory ? "ক্যাটাগরি এডিট" : "নতুন ক্যাটাগরি"}</DialogTitle>
+              <DialogTitle>{editingCategory ? t(adminTranslations.categories.editCategory) : t(adminTranslations.categories.addCategory)}</DialogTitle>
             </DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(formData); }} className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>নাম (English)</Label><Input value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} required /></div>
-                <div><Label>নাম (বাংলা)</Label><Input value={formData.name_bn} onChange={(e) => setFormData((p) => ({ ...p, name_bn: e.target.value }))} required /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><Label>{t(adminTranslations.categories.nameEn)}</Label><Input value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} required /></div>
+                <div><Label>{t(adminTranslations.categories.nameBn)}</Label><Input value={formData.name_bn} onChange={(e) => setFormData((p) => ({ ...p, name_bn: e.target.value }))} required /></div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>স্লাগ</Label><Input value={formData.slug} onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))} /></div>
-                <div><Label>সর্ট অর্ডার</Label><Input type="number" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: e.target.value }))} /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><Label>{t(adminTranslations.categories.slug)}</Label><Input value={formData.slug} onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))} /></div>
+                <div><Label>{t(adminTranslations.categories.sortOrder)}</Label><Input type="number" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: e.target.value }))} /></div>
               </div>
               <ImageUpload
                 value={formData.image_url}
                 onChange={(url) => setFormData((p) => ({ ...p, image_url: url }))}
-                label="ক্যাটাগরি ইমেজ"
+                label={t(adminTranslations.categories.image)}
                 folder="categories"
                 aspectRatio="1/1"
               />
               <div className="flex items-center gap-2">
                 <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))} />
-                <Label>অ্যাক্টিভ</Label>
+                <Label>{t(adminTranslations.categories.active)}</Label>
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>বাতিল</Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{t(adminTranslations.common.cancel)}</Button>
                 <Button type="submit" disabled={saveMutation.isPending} className="btn-primary">
                   {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {editingCategory ? "আপডেট" : "যুক্ত করুন"}
+                  {t(adminTranslations.categories.save)}
                 </Button>
               </div>
             </form>
@@ -145,22 +149,22 @@ const AdminCategories = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ক্যাটাগরি</TableHead>
-                <TableHead>স্লাগ</TableHead>
-                <TableHead>সর্ট অর্ডার</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(adminTranslations.categories.name)}</TableHead>
+                <TableHead>{t(adminTranslations.categories.slug)}</TableHead>
+                <TableHead>{t(adminTranslations.categories.sortOrder)}</TableHead>
+                <TableHead>{t(adminTranslations.orders.status)}</TableHead>
+                <TableHead className="text-right">{t(adminTranslations.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {categories?.map((category) => (
                 <TableRow key={category.id}>
-                  <TableCell><div><p className="font-medium">{category.name_bn}</p><p className="text-sm text-muted-foreground">{category.name}</p></div></TableCell>
+                  <TableCell><div><p className="font-medium">{language === "bn" ? category.name_bn : category.name}</p><p className="text-sm text-muted-foreground">{language === "bn" ? category.name : category.name_bn}</p></div></TableCell>
                   <TableCell className="text-muted-foreground">{category.slug}</TableCell>
                   <TableCell>{category.sort_order}</TableCell>
                   <TableCell>
-                    <span className={`text-xs px-2 py-1 rounded-full ${category.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                      {category.is_active ? "অ্যাক্টিভ" : "ইনঅ্যাক্টিভ"}
+                    <span className={`text-xs px-2 py-1 rounded-full ${category.is_active ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}>
+                      {category.is_active ? t(adminTranslations.common.active) : t(adminTranslations.common.inactive)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
