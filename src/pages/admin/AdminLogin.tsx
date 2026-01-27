@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,15 +13,12 @@ import { toast } from "sonner";
 import { Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 
-const loginSchema = z.object({
-  email: z.string().email("সঠিক ইমেইল দিন"),
-  password: z.string().min(6, "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে"),
-});
-
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { signIn, isLoading: authLoading } = useAuth();
   const { getSetting } = useSiteSettings();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -27,6 +26,11 @@ const AdminLogin = () => {
   
   const siteName = getSetting("site_name", "Ameezuglow");
   const logoUrl = getSetting("logo_url", "");
+
+  const loginSchema = z.object({
+    email: z.string().email(language === "bn" ? "সঠিক ইমেইল দিন" : "Enter a valid email"),
+    password: z.string().min(6, language === "bn" ? "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে" : "Password must be at least 6 characters"),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +50,7 @@ const AdminLogin = () => {
       // Fresh login
       const { error } = await signIn(validated.email, validated.password);
       if (error) {
-        toast.error("ইমেইল বা পাসওয়ার্ড ভুল");
+        toast.error(t(adminTranslations.login.invalidCredentials));
         return;
       }
 
@@ -54,7 +58,7 @@ const AdminLogin = () => {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) {
         await supabase.auth.signOut({ scope: "local" });
-        toast.error("লগইন যাচাই করা যায়নি, আবার চেষ্টা করুন");
+        toast.error(language === "bn" ? "লগইন যাচাই করা যায়নি, আবার চেষ্টা করুন" : "Login verification failed, please try again");
         return;
       }
 
@@ -67,11 +71,11 @@ const AdminLogin = () => {
       if (roleError || isAdmin !== true) {
         // Not admin - sign out completely and show error
         await supabase.auth.signOut({ scope: "local" });
-        toast.error("আপনার অ্যাডমিন অ্যাক্সেস নেই");
+        toast.error(language === "bn" ? "আপনার অ্যাডমিন অ্যাক্সেস নেই" : "You don't have admin access");
         return;
       }
 
-      toast.success("অ্যাডমিন লগইন সফল!");
+      toast.success(language === "bn" ? "অ্যাডমিন লগইন সফল!" : "Admin login successful!");
       navigate("/admin", { replace: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -85,7 +89,7 @@ const AdminLogin = () => {
       } else {
         // Sign out on any unexpected error
         await supabase.auth.signOut({ scope: "local" });
-        toast.error("একটি সমস্যা হয়েছে, আবার চেষ্টা করুন");
+        toast.error(language === "bn" ? "একটি সমস্যা হয়েছে, আবার চেষ্টা করুন" : "An error occurred, please try again");
       }
     } finally {
       setIsSubmitting(false);
@@ -116,13 +120,13 @@ const AdminLogin = () => {
               {siteName}
             </h1>
             <p className="text-muted-foreground">
-              অ্যাডমিন প্যানেলে লগইন করুন
+              {t(adminTranslations.login.title)}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">ইমেইল</Label>
+              <Label htmlFor="email">{t(adminTranslations.login.email)}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -138,7 +142,7 @@ const AdminLogin = () => {
             </div>
 
             <div>
-              <Label htmlFor="password">পাসওয়ার্ড</Label>
+              <Label htmlFor="password">{t(adminTranslations.login.password)}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -164,17 +168,17 @@ const AdminLogin = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  অপেক্ষা করুন...
+                  {language === "bn" ? "অপেক্ষা করুন..." : "Please wait..."}
                 </>
               ) : (
-                "লগইন করুন"
+                t(adminTranslations.login.loginButton)
               )}
             </Button>
           </form>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
-          &larr; <a href="/" className="hover:text-primary">মূল সাইটে ফিরে যান</a>
+          <a href="/" className="hover:text-primary">{t(adminTranslations.login.backToSite)}</a>
         </p>
       </motion.div>
     </div>

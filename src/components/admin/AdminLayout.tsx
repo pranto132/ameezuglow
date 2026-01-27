@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 import { AdminSidebar } from "./AdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +16,8 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 export const AdminLayout = () => {
   const { user, isLoading, signOut } = useAuth();
   const { getSetting } = useSiteSettings();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
   const siteName = getSetting("site_name", "Ameezuglow");
   const location = useLocation();
 
@@ -99,14 +103,14 @@ export const AdminLayout = () => {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="text-center space-y-4">
           <ShieldAlert className="w-16 h-16 text-destructive mx-auto" />
-          <h1 className="text-2xl font-bold text-foreground">অ্যাক্সেস নেই</h1>
-          <p className="text-muted-foreground">আপনার অ্যাডমিন প্যানেলে প্রবেশের অনুমতি নেই।</p>
+          <h1 className="text-2xl font-bold text-foreground">{t(adminTranslations.accessDenied.title)}</h1>
+          <p className="text-muted-foreground">{t(adminTranslations.accessDenied.message)}</p>
           <div className="flex gap-2 justify-center">
             <Button variant="outline" onClick={() => window.location.href = "/"}>
-              হোমে ফিরুন
+              {t(adminTranslations.accessDenied.goHome)}
             </Button>
             <Button onClick={() => window.location.href = "/admin/login"}>
-              আবার লগইন করুন
+              {t(adminTranslations.accessDenied.loginAgain)}
             </Button>
           </div>
         </div>
@@ -142,4 +146,3 @@ export const AdminLayout = () => {
     </SidebarProvider>
   );
 };
-

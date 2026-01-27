@@ -1,6 +1,8 @@
 import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 import {
   Sidebar,
   SidebarContent,
@@ -31,34 +33,36 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const menuItems = [
-  { title: "ড্যাশবোর্ড", url: "/admin", icon: LayoutDashboard },
-  { title: "প্রোডাক্ট", url: "/admin/products", icon: Package },
-  { title: "অর্ডার", url: "/admin/orders", icon: ShoppingCart },
-  { title: "ক্যাটাগরি", url: "/admin/categories", icon: Tag },
-  { title: "কুপন", url: "/admin/coupons", icon: Percent },
-  { title: "কাস্টমার", url: "/admin/customers", icon: Users },
-  { title: "ইউজার ম্যানেজমেন্ট", url: "/admin/users", icon: Shield },
-];
-
-const settingsItems = [
-  { title: "হোমপেজ", url: "/admin/homepage", icon: Home },
-  { title: "পেমেন্ট মেথড", url: "/admin/payments", icon: CreditCard },
-  { title: "কুরিয়ার সার্ভিস", url: "/admin/couriers", icon: Truck },
-  { title: "ব্যানার", url: "/admin/banners", icon: Image },
-  { title: "CMS পেজ", url: "/admin/pages", icon: FileText },
-  { title: "সাইট সেটিংস", url: "/admin/settings", icon: Settings },
-];
-
 export const AdminSidebar = () => {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { getSetting } = useSiteSettings();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
   const siteName = getSetting("site_name", "Ameezuglow");
   const logoUrl = getSetting("logo_url", "");
+
+  const menuItems = [
+    { title: t(adminTranslations.sidebar.dashboard), url: "/admin", icon: LayoutDashboard },
+    { title: t(adminTranslations.sidebar.products), url: "/admin/products", icon: Package },
+    { title: t(adminTranslations.sidebar.orders), url: "/admin/orders", icon: ShoppingCart },
+    { title: t(adminTranslations.sidebar.categories), url: "/admin/categories", icon: Tag },
+    { title: t(adminTranslations.sidebar.coupons), url: "/admin/coupons", icon: Percent },
+    { title: t(adminTranslations.sidebar.customers), url: "/admin/customers", icon: Users },
+    { title: t(adminTranslations.sidebar.userManagement), url: "/admin/users", icon: Shield },
+  ];
+
+  const settingsItems = [
+    { title: t(adminTranslations.sidebar.homepage), url: "/admin/homepage", icon: Home },
+    { title: t(adminTranslations.sidebar.paymentMethods), url: "/admin/payments", icon: CreditCard },
+    { title: t(adminTranslations.sidebar.courierServices), url: "/admin/couriers", icon: Truck },
+    { title: t(adminTranslations.sidebar.banners), url: "/admin/banners", icon: Image },
+    { title: t(adminTranslations.sidebar.cmsPages), url: "/admin/pages", icon: FileText },
+    { title: t(adminTranslations.sidebar.siteSettings), url: "/admin/settings", icon: Settings },
+  ];
 
   const isActive = (url: string) => {
     if (url === "/admin") return location.pathname === "/admin";
@@ -86,7 +90,7 @@ export const AdminSidebar = () => {
 
         {/* Main Menu */}
         <SidebarGroup>
-          <SidebarGroupLabel>মেইন মেনু</SidebarGroupLabel>
+          <SidebarGroupLabel>{t(adminTranslations.sidebar.mainMenu)}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -105,7 +109,7 @@ export const AdminSidebar = () => {
 
         {/* Settings Menu */}
         <SidebarGroup>
-          <SidebarGroupLabel>সেটিংস</SidebarGroupLabel>
+          <SidebarGroupLabel>{t(adminTranslations.sidebar.settings)}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {settingsItems.map((item) => (
@@ -135,7 +139,7 @@ export const AdminSidebar = () => {
           className="w-full justify-start"
         >
           <LogOut className="w-4 h-4 mr-2" />
-          {!collapsed && "লগআউট"}
+          {!collapsed && t(adminTranslations.sidebar.logout)}
         </Button>
       </SidebarFooter>
     </Sidebar>

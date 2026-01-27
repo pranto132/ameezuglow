@@ -13,6 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import MultiImageUpload from "@/components/admin/MultiImageUpload";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface Product {
   id: string;
@@ -31,6 +33,8 @@ interface Product {
 
 const AdminProducts = () => {
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -101,12 +105,12 @@ const AdminProducts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
-      toast.success(editingProduct ? "প্রোডাক্ট আপডেট হয়েছে" : "প্রোডাক্ট যুক্ত হয়েছে");
+      toast.success(t(adminTranslations.toasts.productSaved));
       setIsDialogOpen(false);
       resetForm();
     },
     onError: () => {
-      toast.error("কিছু ভুল হয়েছে");
+      toast.error(t(adminTranslations.toasts.somethingWrong));
     },
   });
 
@@ -117,7 +121,7 @@ const AdminProducts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
-      toast.success("প্রোডাক্ট ডিলিট হয়েছে");
+      toast.success(t(adminTranslations.toasts.productDeleted));
     },
   });
 
@@ -170,18 +174,18 @@ const AdminProducts = () => {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">প্রোডাক্ট ম্যানেজমেন্ট</h1>
-          <p className="text-muted-foreground">{products?.length || 0} টি প্রোডাক্ট</p>
+          <h1 className="text-2xl font-display font-bold text-foreground">{t(adminTranslations.products.title)}</h1>
+          <p className="text-muted-foreground">{products?.length || 0}{t(adminTranslations.products.productsCount)}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="btn-primary">
-              <Plus className="w-4 h-4 mr-2" /> নতুন প্রোডাক্ট
+              <Plus className="w-4 h-4 mr-2" /> {t(adminTranslations.products.addProduct)}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingProduct ? "প্রোডাক্ট এডিট করুন" : "নতুন প্রোডাক্ট যুক্ত করুন"}</DialogTitle>
+              <DialogTitle>{editingProduct ? t(adminTranslations.products.editProduct) : t(adminTranslations.products.addProduct)}</DialogTitle>
             </DialogHeader>
             <form
               onSubmit={(e) => {
@@ -190,9 +194,9 @@ const AdminProducts = () => {
               }}
               className="space-y-4 mt-4"
             >
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>নাম (English)</Label>
+                  <Label>{t(adminTranslations.products.nameEn)}</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
@@ -200,7 +204,7 @@ const AdminProducts = () => {
                   />
                 </div>
                 <div>
-                  <Label>নাম (বাংলা)</Label>
+                  <Label>{t(adminTranslations.products.nameBn)}</Label>
                   <Input
                     value={formData.name_bn}
                     onChange={(e) => setFormData((p) => ({ ...p, name_bn: e.target.value }))}
@@ -209,7 +213,7 @@ const AdminProducts = () => {
                 </div>
               </div>
               <div>
-                <Label>স্লাগ</Label>
+                <Label>{t(adminTranslations.products.slug)}</Label>
                 <Input
                   value={formData.slug}
                   onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))}
@@ -218,7 +222,7 @@ const AdminProducts = () => {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>মূল্য (৳)</Label>
+                  <Label>{t(adminTranslations.products.price)} (৳)</Label>
                   <Input
                     type="number"
                     value={formData.price}
@@ -227,7 +231,7 @@ const AdminProducts = () => {
                   />
                 </div>
                 <div>
-                  <Label>সেল মূল্য (৳)</Label>
+                  <Label>{t(adminTranslations.products.salePrice)} (৳)</Label>
                   <Input
                     type="number"
                     value={formData.sale_price}
@@ -235,7 +239,7 @@ const AdminProducts = () => {
                   />
                 </div>
                 <div>
-                  <Label>স্টক</Label>
+                  <Label>{t(adminTranslations.products.stock)}</Label>
                   <Input
                     type="number"
                     value={formData.stock}
@@ -244,18 +248,18 @@ const AdminProducts = () => {
                 </div>
               </div>
               <div>
-                <Label>ক্যাটাগরি</Label>
+                <Label>{t(adminTranslations.products.category)}</Label>
                 <Select
                   value={formData.category_id}
                   onValueChange={(v) => setFormData((p) => ({ ...p, category_id: v }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="ক্যাটাগরি নির্বাচন করুন" />
+                    <SelectValue placeholder={t(adminTranslations.products.selectCategory)} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories?.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name_bn}
+                        {language === "bn" ? cat.name_bn : cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -264,12 +268,12 @@ const AdminProducts = () => {
               <MultiImageUpload
                 value={formData.images}
                 onChange={(urls) => setFormData((p) => ({ ...p, images: urls }))}
-                label="প্রোডাক্ট ইমেজ"
+                label={t(adminTranslations.products.images)}
                 folder="products"
                 maxImages={10}
               />
               <div>
-                <Label>বিবরণ (বাংলা)</Label>
+                <Label>{t(adminTranslations.products.descriptionBn)}</Label>
                 <Textarea
                   value={formData.description_bn}
                   onChange={(e) => setFormData((p) => ({ ...p, description_bn: e.target.value }))}
@@ -282,23 +286,23 @@ const AdminProducts = () => {
                     checked={formData.is_active}
                     onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))}
                   />
-                  <Label>অ্যাক্টিভ</Label>
+                  <Label>{t(adminTranslations.products.active)}</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={formData.is_featured}
                     onCheckedChange={(v) => setFormData((p) => ({ ...p, is_featured: v }))}
                   />
-                  <Label>ফিচার্ড</Label>
+                  <Label>{t(adminTranslations.products.featured)}</Label>
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  বাতিল
+                  {t(adminTranslations.common.cancel)}
                 </Button>
                 <Button type="submit" disabled={saveMutation.isPending} className="btn-primary">
                   {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {editingProduct ? "আপডেট করুন" : "যুক্ত করুন"}
+                  {t(adminTranslations.products.save)}
                 </Button>
               </div>
             </form>
@@ -310,7 +314,7 @@ const AdminProducts = () => {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="প্রোডাক্ট খুঁজুন..."
+          placeholder={t(adminTranslations.products.searchPlaceholder)}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -327,11 +331,11 @@ const AdminProducts = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>প্রোডাক্ট</TableHead>
-                <TableHead>মূল্য</TableHead>
-                <TableHead>স্টক</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(adminTranslations.orders.product)}</TableHead>
+                <TableHead>{t(adminTranslations.products.price)}</TableHead>
+                <TableHead>{t(adminTranslations.products.stock)}</TableHead>
+                <TableHead>{t(adminTranslations.orders.status)}</TableHead>
+                <TableHead className="text-right">{t(adminTranslations.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -339,8 +343,8 @@ const AdminProducts = () => {
                 <TableRow key={product.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium text-foreground">{product.name_bn}</p>
-                      <p className="text-sm text-muted-foreground">{product.name}</p>
+                      <p className="font-medium text-foreground">{language === "bn" ? product.name_bn : product.name}</p>
+                      <p className="text-sm text-muted-foreground">{language === "bn" ? product.name : product.name_bn}</p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -360,11 +364,11 @@ const AdminProducts = () => {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         product.is_active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                       }`}
                     >
-                      {product.is_active ? "অ্যাক্টিভ" : "ইনঅ্যাক্টিভ"}
+                      {product.is_active ? t(adminTranslations.common.active) : t(adminTranslations.common.inactive)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
