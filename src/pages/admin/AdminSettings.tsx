@@ -154,12 +154,12 @@ const AdminSettings = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="flex w-full overflow-x-auto whitespace-nowrap h-auto p-1 gap-1">
-          <TabsTrigger value="general" className="flex-shrink-0 px-3 py-2">সাধারণ</TabsTrigger>
-          <TabsTrigger value="contact" className="flex-shrink-0 px-3 py-2">যোগাযোগ</TabsTrigger>
-          <TabsTrigger value="social" className="flex-shrink-0 px-3 py-2">সোশ্যাল</TabsTrigger>
-          <TabsTrigger value="facebook-pixel" className="flex-shrink-0 px-3 py-2">Pixel</TabsTrigger>
-          <TabsTrigger value="seo" className="flex-shrink-0 px-3 py-2">SEO</TabsTrigger>
+        <TabsList className="grid grid-cols-3 sm:grid-cols-5 w-full h-auto gap-1 p-1">
+          <TabsTrigger value="general" className="text-xs sm:text-sm py-2">সাধারণ</TabsTrigger>
+          <TabsTrigger value="contact" className="text-xs sm:text-sm py-2">যোগাযোগ</TabsTrigger>
+          <TabsTrigger value="social" className="text-xs sm:text-sm py-2">সোশ্যাল</TabsTrigger>
+          <TabsTrigger value="facebook-pixel" className="text-xs sm:text-sm py-2">Pixel</TabsTrigger>
+          <TabsTrigger value="seo" className="text-xs sm:text-sm py-2">SEO</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
