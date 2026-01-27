@@ -25,6 +25,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit, Trash2, FileText, Loader2, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface CMSPage {
   id: string;
@@ -40,6 +42,10 @@ interface CMSPage {
 }
 
 const AdminCMSPages = () => {
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingPage, setEditingPage] = useState<CMSPage | null>(null);
   const [formData, setFormData] = useState({
@@ -84,11 +90,11 @@ const AdminCMSPages = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cms-pages"] });
-      toast({ title: "পেজ তৈরি হয়েছে" });
+      toast({ title: t(tr.cmsPages.pageCreated) });
       resetForm();
     },
     onError: () => {
-      toast({ title: "পেজ তৈরি ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.cmsPages.createFailed), variant: "destructive" });
     },
   });
 
@@ -111,11 +117,11 @@ const AdminCMSPages = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cms-pages"] });
-      toast({ title: "পেজ আপডেট হয়েছে" });
+      toast({ title: t(tr.cmsPages.pageUpdated) });
       resetForm();
     },
     onError: () => {
-      toast({ title: "পেজ আপডেট ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.cmsPages.updateFailed), variant: "destructive" });
     },
   });
 
@@ -126,10 +132,10 @@ const AdminCMSPages = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cms-pages"] });
-      toast({ title: "পেজ মুছে ফেলা হয়েছে" });
+      toast({ title: t(tr.cmsPages.pageDeleted) });
     },
     onError: () => {
-      toast({ title: "পেজ মুছে ফেলা ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.cmsPages.deleteFailed), variant: "destructive" });
     },
   });
 
@@ -184,24 +190,24 @@ const AdminCMSPages = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">CMS পেজ ম্যানেজমেন্ট</h2>
-          <p className="text-muted-foreground">ওয়েবসাইট পেজ কন্টেন্ট পরিচালনা করুন</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t(tr.cmsPages.title)}</h2>
+          <p className="text-muted-foreground">{t(tr.cmsPages.subtitle)}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              নতুন পেজ
+              {t(tr.cmsPages.addPage)}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingPage ? "পেজ এডিট করুন" : "নতুন পেজ তৈরি করুন"}</DialogTitle>
+              <DialogTitle>{editingPage ? t(tr.cmsPages.editPage) : t(tr.cmsPages.createPage)}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Slug (URL)</Label>
+                  <Label>{t(tr.cmsPages.slug)}</Label>
                   <Input
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
@@ -214,18 +220,18 @@ const AdminCMSPages = () => {
                     checked={formData.is_active}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                   />
-                  <Label>সক্রিয়</Label>
+                  <Label>{t(tr.cmsPages.active)}</Label>
                 </div>
               </div>
 
               <Tabs defaultValue="english" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="english">English</TabsTrigger>
-                  <TabsTrigger value="bangla">বাংলা</TabsTrigger>
+                  <TabsTrigger value="english">{t(tr.cmsPages.english)}</TabsTrigger>
+                  <TabsTrigger value="bangla">{t(tr.cmsPages.bangla)}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="english" className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Title (EN)</Label>
+                    <Label>{t(tr.cmsPages.titleEn)}</Label>
                     <Input
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -234,7 +240,7 @@ const AdminCMSPages = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Content (EN)</Label>
+                    <Label>{t(tr.cmsPages.contentEn)}</Label>
                     <Textarea
                       value={formData.content}
                       onChange={(e) => setFormData({ ...formData, content: e.target.value })}
@@ -245,7 +251,7 @@ const AdminCMSPages = () => {
                 </TabsContent>
                 <TabsContent value="bangla" className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Title (বাংলা)</Label>
+                    <Label>{t(tr.cmsPages.titleBn)}</Label>
                     <Input
                       value={formData.title_bn}
                       onChange={(e) => setFormData({ ...formData, title_bn: e.target.value })}
@@ -253,7 +259,7 @@ const AdminCMSPages = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Content (বাংলা)</Label>
+                    <Label>{t(tr.cmsPages.contentBn)}</Label>
                     <Textarea
                       value={formData.content_bn}
                       onChange={(e) => setFormData({ ...formData, content_bn: e.target.value })}
@@ -265,10 +271,10 @@ const AdminCMSPages = () => {
               </Tabs>
 
               <div className="border-t pt-4">
-                <h4 className="font-medium mb-4">SEO সেটিংস</h4>
+                <h4 className="font-medium mb-4">{t(tr.cmsPages.seoSettings)}</h4>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Meta Title</Label>
+                    <Label>{t(tr.cmsPages.metaTitle)}</Label>
                     <Input
                       value={formData.meta_title}
                       onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
@@ -276,7 +282,7 @@ const AdminCMSPages = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Meta Description</Label>
+                    <Label>{t(tr.cmsPages.metaDescription)}</Label>
                     <Textarea
                       value={formData.meta_description}
                       onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
@@ -291,7 +297,7 @@ const AdminCMSPages = () => {
                 {createMutation.isPending || updateMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : null}
-                {editingPage ? "আপডেট করুন" : "তৈরি করুন"}
+                {editingPage ? t(tr.cmsPages.update) : t(tr.cmsPages.create)}
               </Button>
             </form>
           </DialogContent>
@@ -302,18 +308,18 @@ const AdminCMSPages = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            CMS পেজ তালিকা
+            {t(tr.cmsPages.pageList)}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>টাইটেল</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>মেটা টাইটেল</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(tr.cmsPages.pageTitle)}</TableHead>
+                <TableHead>{t(tr.cmsPages.slug)}</TableHead>
+                <TableHead>{t(tr.cmsPages.metaTitle)}</TableHead>
+                <TableHead>{t(tr.cmsPages.status)}</TableHead>
+                <TableHead className="text-right">{t(tr.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -339,7 +345,7 @@ const AdminCMSPages = () => {
                           : "bg-red-500/10 text-red-500"
                       }`}
                     >
-                      {page.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                      {page.is_active ? t(tr.cmsPages.active) : t(tr.cmsPages.inactive)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -366,7 +372,7 @@ const AdminCMSPages = () => {
               {(!pages || pages.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    কোন পেজ পাওয়া যায়নি
+                    {t(tr.cmsPages.noPages)}
                   </TableCell>
                 </TableRow>
               )}
