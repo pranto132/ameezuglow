@@ -24,6 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Image, GripVertical, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface Banner {
   id: string;
@@ -39,6 +41,10 @@ interface Banner {
 }
 
 const AdminBanners = () => {
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [formData, setFormData] = useState({
@@ -83,11 +89,11 @@ const AdminBanners = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
-      toast({ title: "ব্যানার তৈরি হয়েছে" });
+      toast({ title: t(tr.banners.bannerCreated) });
       resetForm();
     },
     onError: () => {
-      toast({ title: "ব্যানার তৈরি ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.banners.createFailed), variant: "destructive" });
     },
   });
 
@@ -110,11 +116,11 @@ const AdminBanners = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
-      toast({ title: "ব্যানার আপডেট হয়েছে" });
+      toast({ title: t(tr.banners.bannerUpdated) });
       resetForm();
     },
     onError: () => {
-      toast({ title: "ব্যানার আপডেট ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.banners.updateFailed), variant: "destructive" });
     },
   });
 
@@ -125,10 +131,10 @@ const AdminBanners = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
-      toast({ title: "ব্যানার মুছে ফেলা হয়েছে" });
+      toast({ title: t(tr.banners.bannerDeleted) });
     },
     onError: () => {
-      toast({ title: "ব্যানার মুছে ফেলা ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.banners.deleteFailed), variant: "destructive" });
     },
   });
 
@@ -183,24 +189,24 @@ const AdminBanners = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">ব্যানার ম্যানেজমেন্ট</h2>
-          <p className="text-muted-foreground">হোমপেজ স্লাইডার ব্যানার পরিচালনা করুন</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t(tr.banners.title)}</h2>
+          <p className="text-muted-foreground">{t(tr.banners.subtitle)}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              নতুন ব্যানার
+              {t(tr.banners.addBanner)}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>{editingBanner ? "ব্যানার এডিট করুন" : "নতুন ব্যানার তৈরি করুন"}</DialogTitle>
+              <DialogTitle>{editingBanner ? t(tr.banners.editBanner) : t(tr.banners.createBanner)}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>টাইটেল (EN)</Label>
+                  <Label>{t(tr.banners.titleEn)}</Label>
                   <Input
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -208,7 +214,7 @@ const AdminBanners = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>টাইটেল (বাংলা)</Label>
+                  <Label>{t(tr.banners.titleBn)}</Label>
                   <Input
                     value={formData.title_bn}
                     onChange={(e) => setFormData({ ...formData, title_bn: e.target.value })}
@@ -219,7 +225,7 @@ const AdminBanners = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>সাবটাইটেল (EN)</Label>
+                  <Label>{t(tr.banners.subtitleEn)}</Label>
                   <Input
                     value={formData.subtitle}
                     onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
@@ -227,7 +233,7 @@ const AdminBanners = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>সাবটাইটেল (বাংলা)</Label>
+                  <Label>{t(tr.banners.subtitleBn)}</Label>
                   <Input
                     value={formData.subtitle_bn}
                     onChange={(e) => setFormData({ ...formData, subtitle_bn: e.target.value })}
@@ -239,13 +245,13 @@ const AdminBanners = () => {
               <ImageUpload
                 value={formData.image_url}
                 onChange={(url) => setFormData({ ...formData, image_url: url })}
-                label="ব্যানার ইমেজ"
+                label={t(tr.banners.bannerImage)}
                 folder="banners"
                 aspectRatio="16/9"
               />
 
               <div className="space-y-2">
-                <Label>লিংক URL</Label>
+                <Label>{t(tr.banners.linkUrl)}</Label>
                 <Input
                   value={formData.link_url}
                   onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
@@ -255,7 +261,7 @@ const AdminBanners = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>সর্ট অর্ডার</Label>
+                  <Label>{t(tr.banners.sortOrder)}</Label>
                   <Input
                     type="number"
                     value={formData.sort_order}
@@ -268,7 +274,7 @@ const AdminBanners = () => {
                     checked={formData.is_active}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                   />
-                  <Label>সক্রিয়</Label>
+                  <Label>{t(tr.banners.active)}</Label>
                 </div>
               </div>
 
@@ -276,7 +282,7 @@ const AdminBanners = () => {
                 {createMutation.isPending || updateMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : null}
-                {editingBanner ? "আপডেট করুন" : "তৈরি করুন"}
+                {editingBanner ? t(tr.banners.update) : t(tr.banners.create)}
               </Button>
             </form>
           </DialogContent>
@@ -287,19 +293,19 @@ const AdminBanners = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Image className="w-5 h-5" />
-            ব্যানার তালিকা
+            {t(tr.banners.bannerList)}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12">ক্রম</TableHead>
-                <TableHead>প্রিভিউ</TableHead>
-                <TableHead>টাইটেল</TableHead>
-                <TableHead>সাবটাইটেল</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead className="w-12">{t(tr.banners.order)}</TableHead>
+                <TableHead>{t(tr.banners.preview)}</TableHead>
+                <TableHead>{t(tr.banners.title_col)}</TableHead>
+                <TableHead>{t(tr.banners.subtitle_col)}</TableHead>
+                <TableHead>{t(tr.banners.status)}</TableHead>
+                <TableHead className="text-right">{t(tr.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -344,7 +350,7 @@ const AdminBanners = () => {
                           : "bg-red-500/10 text-red-500"
                       }`}
                     >
-                      {banner.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                      {banner.is_active ? t(tr.banners.active) : t(tr.banners.inactive)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -366,7 +372,7 @@ const AdminBanners = () => {
               {(!banners || banners.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    কোন ব্যানার পাওয়া যায়নি
+                    {t(tr.banners.noBanners)}
                   </TableCell>
                 </TableRow>
               )}

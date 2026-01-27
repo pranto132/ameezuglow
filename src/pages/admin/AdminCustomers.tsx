@@ -21,6 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Search, Phone, Mail, MapPin, ShoppingBag, Eye, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface Order {
   id: string;
@@ -50,6 +52,10 @@ interface Customer {
 }
 
 const AdminCustomers = () => {
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -119,12 +125,12 @@ const AdminCustomers = () => {
 
   const getStatusBadge = (status: string | null) => {
     const statusConfig: Record<string, { label: string; className: string }> = {
-      pending: { label: "পেন্ডিং", className: "bg-yellow-500/10 text-yellow-500" },
-      confirmed: { label: "কনফার্মড", className: "bg-blue-500/10 text-blue-500" },
-      processing: { label: "প্রসেসিং", className: "bg-purple-500/10 text-purple-500" },
-      shipped: { label: "শিপড", className: "bg-indigo-500/10 text-indigo-500" },
-      delivered: { label: "ডেলিভারড", className: "bg-green-500/10 text-green-500" },
-      cancelled: { label: "ক্যান্সেলড", className: "bg-red-500/10 text-red-500" },
+      pending: { label: t(tr.orderStatus.pending), className: "bg-yellow-500/10 text-yellow-500" },
+      confirmed: { label: t(tr.orderStatus.confirmed), className: "bg-blue-500/10 text-blue-500" },
+      processing: { label: t(tr.orderStatus.processing), className: "bg-purple-500/10 text-purple-500" },
+      shipped: { label: t(tr.orderStatus.shipped), className: "bg-indigo-500/10 text-indigo-500" },
+      delivered: { label: t(tr.orderStatus.delivered), className: "bg-green-500/10 text-green-500" },
+      cancelled: { label: t(tr.orderStatus.cancelled), className: "bg-red-500/10 text-red-500" },
     };
     const config = statusConfig[status || "pending"] || statusConfig.pending;
     return <Badge className={config.className}>{config.label}</Badge>;
@@ -142,8 +148,8 @@ const AdminCustomers = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">কাস্টমার ম্যানেজমেন্ট</h2>
-          <p className="text-muted-foreground">কাস্টমার তথ্য ও অর্ডার হিস্ট্রি দেখুন</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t(tr.customers.title)}</h2>
+          <p className="text-muted-foreground">{t(tr.customers.subtitle)}</p>
         </div>
       </div>
 
@@ -156,7 +162,7 @@ const AdminCustomers = () => {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">মোট কাস্টমার</p>
+                <p className="text-sm text-muted-foreground">{t(tr.customers.totalCustomers)}</p>
                 <p className="text-2xl font-bold">{customers.length}</p>
               </div>
             </div>
@@ -169,7 +175,7 @@ const AdminCustomers = () => {
                 <ShoppingBag className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">মোট অর্ডার</p>
+                <p className="text-sm text-muted-foreground">{t(tr.customers.totalOrders)}</p>
                 <p className="text-2xl font-bold">{orders?.length || 0}</p>
               </div>
             </div>
@@ -182,7 +188,7 @@ const AdminCustomers = () => {
                 <Users className="w-6 h-6 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">রিপিট কাস্টমার</p>
+                <p className="text-sm text-muted-foreground">{t(tr.customers.repeatCustomers)}</p>
                 <p className="text-2xl font-bold">
                   {customers.filter((c) => c.totalOrders > 1).length}
                 </p>
@@ -196,7 +202,7 @@ const AdminCustomers = () => {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="নাম, ফোন বা ইমেইল দিয়ে খুঁজুন..."
+          placeholder={t(tr.customers.searchPlaceholder)}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -208,21 +214,21 @@ const AdminCustomers = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
-            কাস্টমার তালিকা
+            {t(tr.customers.customerList)}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>নাম</TableHead>
-                <TableHead>ফোন</TableHead>
-                <TableHead>ইমেইল</TableHead>
-                <TableHead>শহর</TableHead>
-                <TableHead className="text-center">অর্ডার</TableHead>
-                <TableHead className="text-right">মোট খরচ</TableHead>
-                <TableHead>শেষ অর্ডার</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(tr.customers.name)}</TableHead>
+                <TableHead>{t(tr.customers.phone)}</TableHead>
+                <TableHead>{t(tr.customers.email)}</TableHead>
+                <TableHead>{t(tr.customers.city)}</TableHead>
+                <TableHead className="text-center">{t(tr.customers.orders)}</TableHead>
+                <TableHead className="text-right">{t(tr.customers.totalSpent)}</TableHead>
+                <TableHead>{t(tr.customers.lastOrder)}</TableHead>
+                <TableHead className="text-right">{t(tr.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -276,7 +282,7 @@ const AdminCustomers = () => {
               {filteredCustomers.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    কোন কাস্টমার পাওয়া যায়নি
+                    {t(tr.customers.noCustomers)}
                   </TableCell>
                 </TableRow>
               )}
@@ -289,7 +295,7 @@ const AdminCustomers = () => {
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>কাস্টমার বিস্তারিত</DialogTitle>
+            <DialogTitle>{t(tr.customers.customerDetails)}</DialogTitle>
           </DialogHeader>
           {selectedCustomer && (
             <div className="space-y-6">
@@ -298,23 +304,23 @@ const AdminCustomers = () => {
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">নাম</p>
+                      <p className="text-sm text-muted-foreground">{t(tr.customers.name)}</p>
                       <p className="font-medium">{selectedCustomer.name}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">ফোন</p>
+                      <p className="text-sm text-muted-foreground">{t(tr.customers.phone)}</p>
                       <p className="font-medium">{selectedCustomer.phone}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">ইমেইল</p>
+                      <p className="text-sm text-muted-foreground">{t(tr.customers.email)}</p>
                       <p className="font-medium">{selectedCustomer.email || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">শহর</p>
+                      <p className="text-sm text-muted-foreground">{t(tr.customers.city)}</p>
                       <p className="font-medium">{selectedCustomer.city}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground">ঠিকানা</p>
+                      <p className="text-sm text-muted-foreground">{t(tr.customers.address)}</p>
                       <p className="font-medium">{selectedCustomer.address}</p>
                     </div>
                   </div>
@@ -328,7 +334,7 @@ const AdminCustomers = () => {
                     <p className="text-2xl font-bold text-primary">
                       {selectedCustomer.totalOrders}
                     </p>
-                    <p className="text-sm text-muted-foreground">মোট অর্ডার</p>
+                    <p className="text-sm text-muted-foreground">{t(tr.customers.totalOrders)}</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -336,7 +342,7 @@ const AdminCustomers = () => {
                     <p className="text-2xl font-bold text-green-500">
                       ৳{selectedCustomer.totalSpent.toLocaleString()}
                     </p>
-                    <p className="text-sm text-muted-foreground">মোট খরচ</p>
+                    <p className="text-sm text-muted-foreground">{t(tr.customers.totalSpent)}</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -344,7 +350,7 @@ const AdminCustomers = () => {
                     <p className="text-2xl font-bold text-amber-500">
                       ৳{Math.round(selectedCustomer.totalSpent / selectedCustomer.totalOrders).toLocaleString()}
                     </p>
-                    <p className="text-sm text-muted-foreground">গড় অর্ডার</p>
+                    <p className="text-sm text-muted-foreground">{t(tr.customers.averageOrder)}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -352,17 +358,17 @@ const AdminCustomers = () => {
               {/* Order History */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">অর্ডার হিস্ট্রি</CardTitle>
+                  <CardTitle className="text-lg">{t(tr.customers.orderHistory)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>অর্ডার নং</TableHead>
-                        <TableHead>তারিখ</TableHead>
-                        <TableHead>স্ট্যাটাস</TableHead>
-                        <TableHead>পেমেন্ট</TableHead>
-                        <TableHead className="text-right">টোটাল</TableHead>
+                        <TableHead>{t(tr.customers.orderNumber)}</TableHead>
+                        <TableHead>{t(tr.customers.date)}</TableHead>
+                        <TableHead>{t(tr.customers.status)}</TableHead>
+                        <TableHead>{t(tr.customers.payment)}</TableHead>
+                        <TableHead className="text-right">{t(tr.customers.total)}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -383,7 +389,7 @@ const AdminCustomers = () => {
                                   : "bg-yellow-500/10 text-yellow-500"
                               }
                             >
-                              {order.payment_status === "paid" ? "পেইড" : "পেন্ডিং"}
+                              {order.payment_status === "paid" ? t(tr.customers.paid) : t(tr.customers.pending)}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium">

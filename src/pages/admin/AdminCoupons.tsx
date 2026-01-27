@@ -31,6 +31,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Percent, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 interface Coupon {
   id: string;
@@ -46,6 +48,10 @@ interface Coupon {
 }
 
 const AdminCoupons = () => {
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [formData, setFormData] = useState({
@@ -88,11 +94,11 @@ const AdminCoupons = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
-      toast({ title: "কুপন তৈরি হয়েছে" });
+      toast({ title: t(tr.coupons.couponCreated) });
       resetForm();
     },
     onError: () => {
-      toast({ title: "কুপন তৈরি ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.coupons.createFailed), variant: "destructive" });
     },
   });
 
@@ -114,11 +120,11 @@ const AdminCoupons = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
-      toast({ title: "কুপন আপডেট হয়েছে" });
+      toast({ title: t(tr.coupons.couponUpdated) });
       resetForm();
     },
     onError: () => {
-      toast({ title: "কুপন আপডেট ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.coupons.updateFailed), variant: "destructive" });
     },
   });
 
@@ -129,10 +135,10 @@ const AdminCoupons = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
-      toast({ title: "কুপন মুছে ফেলা হয়েছে" });
+      toast({ title: t(tr.coupons.couponDeleted) });
     },
     onError: () => {
-      toast({ title: "কুপন মুছে ফেলা ব্যর্থ", variant: "destructive" });
+      toast({ title: t(tr.coupons.deleteFailed), variant: "destructive" });
     },
   });
 
@@ -185,23 +191,23 @@ const AdminCoupons = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">কুপন ম্যানেজমেন্ট</h2>
-          <p className="text-muted-foreground">ডিসকাউন্ট কুপন তৈরি ও পরিচালনা করুন</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t(tr.coupons.title)}</h2>
+          <p className="text-muted-foreground">{t(tr.coupons.subtitle)}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              নতুন কুপন
+              {t(tr.coupons.addCoupon)}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editingCoupon ? "কুপন এডিট করুন" : "নতুন কুপন তৈরি করুন"}</DialogTitle>
+              <DialogTitle>{editingCoupon ? t(tr.coupons.editCoupon) : t(tr.coupons.createCoupon)}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label>কুপন কোড</Label>
+                <Label>{t(tr.coupons.code)}</Label>
                 <Input
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
@@ -212,7 +218,7 @@ const AdminCoupons = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>ডিসকাউন্ট টাইপ</Label>
+                  <Label>{t(tr.coupons.discountType)}</Label>
                   <Select
                     value={formData.discount_type}
                     onValueChange={(value) => setFormData({ ...formData, discount_type: value })}
@@ -221,13 +227,13 @@ const AdminCoupons = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="percentage">শতাংশ (%)</SelectItem>
-                      <SelectItem value="fixed">ফিক্সড (৳)</SelectItem>
+                      <SelectItem value="percentage">{t(tr.coupons.percentage)}</SelectItem>
+                      <SelectItem value="fixed">{t(tr.coupons.fixed)}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>ডিসকাউন্ট ভ্যালু</Label>
+                  <Label>{t(tr.coupons.discountValue)}</Label>
                   <Input
                     type="number"
                     value={formData.discount_value}
@@ -240,7 +246,7 @@ const AdminCoupons = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>মিনিমাম অর্ডার ভ্যালু</Label>
+                  <Label>{t(tr.coupons.minOrderValue)}</Label>
                   <Input
                     type="number"
                     value={formData.min_order_value}
@@ -249,7 +255,7 @@ const AdminCoupons = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>সর্বোচ্চ ব্যবহার</Label>
+                  <Label>{t(tr.coupons.maxUses)}</Label>
                   <Input
                     type="number"
                     value={formData.max_uses}
@@ -260,7 +266,7 @@ const AdminCoupons = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>মেয়াদ শেষ তারিখ</Label>
+                <Label>{t(tr.coupons.expiresAt)}</Label>
                 <Input
                   type="date"
                   value={formData.expires_at}
@@ -273,14 +279,14 @@ const AdminCoupons = () => {
                   checked={formData.is_active}
                   onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                 />
-                <Label>সক্রিয়</Label>
+                <Label>{t(tr.coupons.active)}</Label>
               </div>
 
               <Button type="submit" className="w-full" disabled={createMutation.isPending || updateMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : null}
-                {editingCoupon ? "আপডেট করুন" : "তৈরি করুন"}
+                {editingCoupon ? t(tr.coupons.update) : t(tr.coupons.create)}
               </Button>
             </form>
           </DialogContent>
@@ -291,20 +297,20 @@ const AdminCoupons = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Percent className="w-5 h-5" />
-            কুপন তালিকা
+            {t(tr.coupons.couponList)}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>কোড</TableHead>
-                <TableHead>ডিসকাউন্ট</TableHead>
-                <TableHead>মিনিমাম অর্ডার</TableHead>
-                <TableHead>ব্যবহার</TableHead>
-                <TableHead>মেয়াদ</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(tr.coupons.code)}</TableHead>
+                <TableHead>{t(tr.coupons.discount)}</TableHead>
+                <TableHead>{t(tr.coupons.minOrderValue)}</TableHead>
+                <TableHead>{t(tr.coupons.usage)}</TableHead>
+                <TableHead>{t(tr.coupons.expiry)}</TableHead>
+                <TableHead>{t(tr.coupons.status)}</TableHead>
+                <TableHead className="text-right">{t(tr.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -325,7 +331,7 @@ const AdminCoupons = () => {
                   <TableCell>
                     {coupon.expires_at
                       ? format(new Date(coupon.expires_at), "dd/MM/yyyy")
-                      : "কোন মেয়াদ নেই"}
+                      : t(tr.coupons.noExpiry)}
                   </TableCell>
                   <TableCell>
                     <span
@@ -335,7 +341,7 @@ const AdminCoupons = () => {
                           : "bg-red-500/10 text-red-500"
                       }`}
                     >
-                      {coupon.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                      {coupon.is_active ? t(tr.coupons.active) : t(tr.coupons.inactive)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -357,7 +363,7 @@ const AdminCoupons = () => {
               {(!coupons || coupons.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    কোন কুপন পাওয়া যায়নি
+                    {t(tr.coupons.noCoupons)}
                   </TableCell>
                 </TableRow>
               )}
