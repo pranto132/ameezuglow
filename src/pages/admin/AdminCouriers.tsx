@@ -11,8 +11,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Loader2, Key, Check, X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 const AdminCouriers = () => {
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCourier, setEditingCourier] = useState<any>(null);
@@ -58,11 +64,11 @@ const AdminCouriers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-couriers"] });
-      toast.success(editingCourier ? "কুরিয়ার আপডেট হয়েছে" : "কুরিয়ার যুক্ত হয়েছে");
+      toast.success(editingCourier ? t(tr.couriers.courierUpdated) : t(tr.couriers.courierAdded));
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => toast.error("কিছু ভুল হয়েছে"),
+    onError: () => toast.error(t(tr.couriers.error)),
   });
 
   const deleteMutation = useMutation({
@@ -72,7 +78,7 @@ const AdminCouriers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-couriers"] });
-      toast.success("কুরিয়ার ডিলিট হয়েছে");
+      toast.success(t(tr.couriers.courierDeleted));
     },
   });
 
@@ -109,28 +115,28 @@ const AdminCouriers = () => {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">কুরিয়ার সার্ভিস</h1>
-          <p className="text-muted-foreground">{couriers?.length || 0} টি কুরিয়ার</p>
+          <h1 className="text-2xl font-display font-bold text-foreground">{t(tr.couriers.title)}</h1>
+          <p className="text-muted-foreground">{couriers?.length || 0}{t(tr.couriers.couriersCount)}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="btn-primary"><Plus className="w-4 h-4 mr-2" /> নতুন কুরিয়ার</Button>
+            <Button className="btn-primary"><Plus className="w-4 h-4 mr-2" /> {t(tr.couriers.addCourier)}</Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>{editingCourier ? "কুরিয়ার এডিট" : "নতুন কুরিয়ার"}</DialogTitle>
+              <DialogTitle>{editingCourier ? t(tr.couriers.editCourier) : t(tr.couriers.addCourier)}</DialogTitle>
             </DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(formData); }} className="space-y-4 mt-4">
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="basic">বেসিক তথ্য</TabsTrigger>
-                  <TabsTrigger value="api">API সেটিংস</TabsTrigger>
+                  <TabsTrigger value="basic">{t(tr.couriers.basicInfo)}</TabsTrigger>
+                  <TabsTrigger value="api">{t(tr.couriers.apiSettings)}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="basic" className="space-y-4 mt-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>নাম</Label>
+                      <Label>{t(tr.couriers.name)}</Label>
                       <Input 
                         value={formData.name} 
                         onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} 
@@ -139,18 +145,18 @@ const AdminCouriers = () => {
                       />
                     </div>
                     <div>
-                      <Label>টাইপ</Label>
+                      <Label>{t(tr.couriers.type)}</Label>
                       <Input 
                         value={formData.type} 
                         onChange={(e) => setFormData((p) => ({ ...p, type: e.target.value }))} 
-                        placeholder="pathao, redx, steadfast..." 
+                        placeholder={t(tr.couriers.typePlaceholder)} 
                         required 
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>ঢাকার ভেতরে চার্জ (৳)</Label>
+                      <Label>{t(tr.couriers.insideDhakaCharge)}</Label>
                       <Input 
                         type="number" 
                         value={formData.inside_dhaka_charge} 
@@ -158,7 +164,7 @@ const AdminCouriers = () => {
                       />
                     </div>
                     <div>
-                      <Label>ঢাকার বাইরে চার্জ (৳)</Label>
+                      <Label>{t(tr.couriers.outsideDhakaCharge)}</Label>
                       <Input 
                         type="number" 
                         value={formData.outside_dhaka_charge} 
@@ -167,12 +173,12 @@ const AdminCouriers = () => {
                     </div>
                   </div>
                   <div>
-                    <Label>ফ্রি ডেলিভারি মিনিমাম (৳)</Label>
+                    <Label>{t(tr.couriers.freeDeliveryMin)}</Label>
                     <Input 
                       type="number" 
                       value={formData.free_delivery_min_order} 
                       onChange={(e) => setFormData((p) => ({ ...p, free_delivery_min_order: e.target.value }))} 
-                      placeholder="যেমন: 2000" 
+                      placeholder={t(tr.couriers.freeDeliveryExample)} 
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -180,7 +186,7 @@ const AdminCouriers = () => {
                       checked={formData.is_active} 
                       onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))} 
                     />
-                    <Label>অ্যাক্টিভ</Label>
+                    <Label>{t(tr.couriers.active)}</Label>
                   </div>
                 </TabsContent>
 
@@ -188,43 +194,43 @@ const AdminCouriers = () => {
                   <div className="bg-muted/50 rounded-lg p-4 mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Key className="w-4 h-4 text-primary" />
-                      <span className="font-medium">API Credentials</span>
+                      <span className="font-medium">{t(tr.couriers.apiCredentials)}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      কুরিয়ার সার্ভিসের API Key এবং Secret দিয়ে অটোমেটিক অর্ডার ক্রিয়েট এবং ট্র্যাকিং সক্রিয় করুন।
+                      {t(tr.couriers.apiDescription)}
                     </p>
                   </div>
                   <div>
-                    <Label>API Key</Label>
+                    <Label>{t(tr.couriers.apiKey)}</Label>
                     <Input 
                       value={formData.api_key} 
                       onChange={(e) => setFormData((p) => ({ ...p, api_key: e.target.value }))} 
-                      placeholder="আপনার API Key দিন"
+                      placeholder={t(tr.couriers.apiKeyPlaceholder)}
                       type="password"
                     />
                   </div>
                   <div>
-                    <Label>API Secret</Label>
+                    <Label>{t(tr.couriers.apiSecret)}</Label>
                     <Input 
                       value={formData.api_secret} 
                       onChange={(e) => setFormData((p) => ({ ...p, api_secret: e.target.value }))} 
-                      placeholder="আপনার API Secret দিন"
+                      placeholder={t(tr.couriers.apiSecretPlaceholder)}
                       type="password"
                     />
                   </div>
                   <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                     <p className="text-sm text-amber-800 dark:text-amber-200">
-                      <strong>নোট:</strong> API credentials সঠিকভাবে সেট করলে অর্ডার পেজ থেকে সরাসরি কুরিয়ার অ্যাসাইন করতে পারবেন।
+                      <strong>{language === "bn" ? "নোট:" : "Note:"}</strong> {t(tr.couriers.apiNote)}
                     </p>
                   </div>
                 </TabsContent>
               </Tabs>
 
               <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>বাতিল</Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{t(tr.couriers.cancel)}</Button>
                 <Button type="submit" disabled={saveMutation.isPending} className="btn-primary">
                   {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {editingCourier ? "আপডেট" : "যুক্ত করুন"}
+                  {editingCourier ? t(tr.couriers.update) : t(tr.couriers.add)}
                 </Button>
               </div>
             </form>
@@ -237,13 +243,13 @@ const AdminCouriers = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>কুরিয়ার</TableHead>
-                <TableHead>ঢাকার ভেতরে</TableHead>
-                <TableHead>ঢাকার বাইরে</TableHead>
-                <TableHead>ফ্রি ডেলিভারি</TableHead>
+                <TableHead>{t(tr.couriers.courier)}</TableHead>
+                <TableHead>{t(tr.couriers.insideDhaka)}</TableHead>
+                <TableHead>{t(tr.couriers.outsideDhaka)}</TableHead>
+                <TableHead>{t(tr.couriers.freeDelivery)}</TableHead>
                 <TableHead>API</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(tr.couriers.status)}</TableHead>
+                <TableHead className="text-right">{t(tr.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -261,17 +267,17 @@ const AdminCouriers = () => {
                   <TableCell>
                     {courier.api_key ? (
                       <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">
-                        <Check className="w-3 h-3" /> কানেক্টেড
+                        <Check className="w-3 h-3" /> {t(tr.couriers.apiConnected)}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                        <X className="w-3 h-3" /> সেট নেই
+                        <X className="w-3 h-3" /> {t(tr.couriers.apiNotSet)}
                       </span>
                     )}
                   </TableCell>
                   <TableCell>
                     <span className={`text-xs px-2 py-1 rounded-full ${courier.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                      {courier.is_active ? "অ্যাক্টিভ" : "ইনঅ্যাক্টিভ"}
+                      {courier.is_active ? t(tr.couriers.active) : t(tr.couriers.inactive)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">

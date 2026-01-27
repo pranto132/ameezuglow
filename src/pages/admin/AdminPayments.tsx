@@ -11,8 +11,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
 const AdminPayments = () => {
+  const { language } = useLanguage();
+  const { t } = useAdminTranslation(language);
+  const tr = adminTranslations;
+
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMethod, setEditingMethod] = useState<any>(null);
@@ -49,11 +55,11 @@ const AdminPayments = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-payment-methods"] });
-      toast.success(editingMethod ? "পেমেন্ট মেথড আপডেট হয়েছে" : "পেমেন্ট মেথড যুক্ত হয়েছে");
+      toast.success(editingMethod ? t(tr.payments.methodUpdated) : t(tr.payments.methodAdded));
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => toast.error("কিছু ভুল হয়েছে"),
+    onError: () => toast.error(t(tr.payments.error)),
   });
 
   const deleteMutation = useMutation({
@@ -63,7 +69,7 @@ const AdminPayments = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-payment-methods"] });
-      toast.success("পেমেন্ট মেথড ডিলিট হয়েছে");
+      toast.success(t(tr.payments.methodDeleted));
     },
   });
 
@@ -91,37 +97,37 @@ const AdminPayments = () => {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">পেমেন্ট মেথড</h1>
-          <p className="text-muted-foreground">{paymentMethods?.length || 0} টি পেমেন্ট মেথড</p>
+          <h1 className="text-2xl font-display font-bold text-foreground">{t(tr.payments.title)}</h1>
+          <p className="text-muted-foreground">{paymentMethods?.length || 0}{t(tr.payments.methodsCount)}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="btn-primary"><Plus className="w-4 h-4 mr-2" /> নতুন পেমেন্ট মেথড</Button>
+            <Button className="btn-primary"><Plus className="w-4 h-4 mr-2" /> {t(tr.payments.addMethod)}</Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>{editingMethod ? "পেমেন্ট মেথড এডিট" : "নতুন পেমেন্ট মেথড"}</DialogTitle>
+              <DialogTitle>{editingMethod ? t(tr.payments.editMethod) : t(tr.payments.addMethod)}</DialogTitle>
             </DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(formData); }} className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>নাম (English)</Label><Input value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} required /></div>
-                <div><Label>নাম (বাংলা)</Label><Input value={formData.name_bn} onChange={(e) => setFormData((p) => ({ ...p, name_bn: e.target.value }))} required /></div>
+                <div><Label>{t(tr.payments.nameEn)}</Label><Input value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} required /></div>
+                <div><Label>{t(tr.payments.nameBn)}</Label><Input value={formData.name_bn} onChange={(e) => setFormData((p) => ({ ...p, name_bn: e.target.value }))} required /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>টাইপ</Label><Input value={formData.type} onChange={(e) => setFormData((p) => ({ ...p, type: e.target.value }))} placeholder="cod, bkash, nagad..." required /></div>
-                <div><Label>অ্যাকাউন্ট নম্বর</Label><Input value={formData.account_number} onChange={(e) => setFormData((p) => ({ ...p, account_number: e.target.value }))} /></div>
+                <div><Label>{t(tr.payments.type)}</Label><Input value={formData.type} onChange={(e) => setFormData((p) => ({ ...p, type: e.target.value }))} placeholder={t(tr.payments.typePlaceholder)} required /></div>
+                <div><Label>{t(tr.payments.accountNumber)}</Label><Input value={formData.account_number} onChange={(e) => setFormData((p) => ({ ...p, account_number: e.target.value }))} /></div>
               </div>
-              <div><Label>নির্দেশনা (English)</Label><Textarea value={formData.instructions} onChange={(e) => setFormData((p) => ({ ...p, instructions: e.target.value }))} rows={2} /></div>
-              <div><Label>নির্দেশনা (বাংলা)</Label><Textarea value={formData.instructions_bn} onChange={(e) => setFormData((p) => ({ ...p, instructions_bn: e.target.value }))} rows={2} /></div>
+              <div><Label>{t(tr.payments.instructionsEn)}</Label><Textarea value={formData.instructions} onChange={(e) => setFormData((p) => ({ ...p, instructions: e.target.value }))} rows={2} /></div>
+              <div><Label>{t(tr.payments.instructionsBn)}</Label><Textarea value={formData.instructions_bn} onChange={(e) => setFormData((p) => ({ ...p, instructions_bn: e.target.value }))} rows={2} /></div>
               <div className="flex items-center gap-4">
-                <div><Label>সর্ট অর্ডার</Label><Input type="number" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: e.target.value }))} className="w-24" /></div>
-                <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))} /><Label>অ্যাক্টিভ</Label></div>
+                <div><Label>{t(tr.payments.sortOrder)}</Label><Input type="number" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: e.target.value }))} className="w-24" /></div>
+                <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((p) => ({ ...p, is_active: v }))} /><Label>{t(tr.payments.active)}</Label></div>
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>বাতিল</Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{t(tr.payments.cancel)}</Button>
                 <Button type="submit" disabled={saveMutation.isPending} className="btn-primary">
                   {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {editingMethod ? "আপডেট" : "যুক্ত করুন"}
+                  {editingMethod ? t(tr.payments.update) : t(tr.payments.add)}
                 </Button>
               </div>
             </form>
@@ -134,11 +140,11 @@ const AdminPayments = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>পেমেন্ট মেথড</TableHead>
-                <TableHead>টাইপ</TableHead>
-                <TableHead>অ্যাকাউন্ট নম্বর</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>{t(tr.payments.paymentMethod)}</TableHead>
+                <TableHead>{t(tr.payments.type)}</TableHead>
+                <TableHead>{t(tr.payments.accountNumber)}</TableHead>
+                <TableHead>{t(tr.payments.status)}</TableHead>
+                <TableHead className="text-right">{t(tr.common.actions)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -149,7 +155,7 @@ const AdminPayments = () => {
                   <TableCell>{method.account_number || "-"}</TableCell>
                   <TableCell>
                     <span className={`text-xs px-2 py-1 rounded-full ${method.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                      {method.is_active ? "অ্যাক্টিভ" : "ইনঅ্যাক্টিভ"}
+                      {method.is_active ? t(tr.payments.active) : t(tr.payments.inactive)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
