@@ -9,6 +9,7 @@ import { Loader2, Menu, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const AdminLayout = () => {
   const { user, isLoading, signOut } = useAuth();
@@ -128,7 +129,10 @@ export const AdminLayout = () => {
                 {user.email}
               </Badge>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
