@@ -20,6 +20,11 @@ jobs:
 
       - run: npm install
       - run: npm run build
+        env:
+          GITHUB_ACTIONS: true
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
