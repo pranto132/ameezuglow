@@ -10,11 +10,8 @@ const corsHeaders = {
 const CreateUserSchema = z.object({
   email: z.string().email("Invalid email format").max(255),
   password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .max(72, "Password too long")
-    .regex(/[a-z]/, "Password must contain a lowercase letter")
-    .regex(/[A-Z]/, "Password must contain an uppercase letter")
-    .regex(/[0-9]/, "Password must contain a number"),
+    .min(6, "Password must be at least 6 characters")
+    .max(72, "Password too long"),
   role: z.enum(["admin", "staff"]).optional(),
   name: z.string().max(100).optional(),
 });
