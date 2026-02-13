@@ -75,19 +75,26 @@ const AdminUsers = () => {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async ({ name, email, password, role }: { name: string; email: string; password: string; role: string }) => {
-      const response = await supabase.functions.invoke("create-user", {
-        body: { name, email, password, role },
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const token = currentSession?.access_token;
+      
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ name, email, password, role }),
       });
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to create user");
       }
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
-      }
-
-      return response.data;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
