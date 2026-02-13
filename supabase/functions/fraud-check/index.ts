@@ -17,15 +17,8 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const fraudBdApiKey = Deno.env.get("FRAUDBD_API_KEY");
-
-    if (!fraudBdApiKey) {
-      return new Response(
-        JSON.stringify({ error: "FRAUDBD_API_KEY is not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     // Verify auth
     const authHeader = req.headers.get("Authorization");
@@ -82,29 +75,101 @@ Deno.serve(async (req) => {
 
     const { phone_number } = validatedInput;
 
-    // Call FraudBD API
-    const fraudResponse = await fetch("https://fraudbd.com/api/check-courier-info", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api_key": fraudBdApiKey,
-      },
-      body: JSON.stringify({ phone_number }),
-    });
+    // Read fraud check config from site_settings using service role (bypasses RLS)
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: settingsData } = await serviceClient
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["fraud_check_service", "fraud_check_api_key", "fraud_check_api_secret"]);
 
-    if (!fraudResponse.ok) {
-      const errorText = await fraudResponse.text();
-      console.error("FraudBD API error:", fraudResponse.status, errorText);
+    const configMap: Record<string, string> = {};
+    settingsData?.forEach((s: any) => { configMap[s.key] = s.value || ""; });
+
+    const service = configMap.fraud_check_service || "fraudbd";
+    const apiKey = configMap.fraud_check_api_key || Deno.env.get("FRAUDBD_API_KEY") || "";
+    const apiSecret = configMap.fraud_check_api_secret || "";
+
+    if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Failed to fetch fraud data" }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Fraud check API key is not configured. Go to Settings > ফ্রড চেক to set it up." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const fraudData = await fraudResponse.json();
+    let fraudData: any;
+
+    if (service === "fraudbd") {
+      // FraudBD API
+      const fraudResponse = await fetch("https://fraudbd.com/api/check-courier-info", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "api_key": apiKey,
+        },
+        body: JSON.stringify({ phone_number }),
+      });
+
+      if (!fraudResponse.ok) {
+        const errorText = await fraudResponse.text();
+        console.error("FraudBD API error:", fraudResponse.status, errorText);
+        return new Response(
+          JSON.stringify({ error: "FraudBD API error. Please check your API key in Settings.", details: errorText }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      fraudData = await fraudResponse.json();
+
+    } else if (service === "steadfast") {
+      // Steadfast API
+      const fraudResponse = await fetch(`https://portal.steadfast.com.bd/api/v1/fraud-check/${phone_number}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Api-Key": apiKey,
+          "Secret-Key": apiSecret,
+        },
+      });
+
+      if (!fraudResponse.ok) {
+        const errorText = await fraudResponse.text();
+        console.error("Steadfast API error:", fraudResponse.status, errorText);
+        return new Response(
+          JSON.stringify({ error: "Steadfast API error. Please check your API key/secret in Settings.", details: errorText }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      fraudData = await fraudResponse.json();
+
+    } else if (service === "fraudchecker") {
+      // FraudChecker.link API
+      const fraudResponse = await fetch("https://fraudchecker.link/api/check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ phone: phone_number }),
+      });
+
+      if (!fraudResponse.ok) {
+        const errorText = await fraudResponse.text();
+        console.error("FraudChecker API error:", fraudResponse.status, errorText);
+        return new Response(
+          JSON.stringify({ error: "FraudChecker API error. Please check your API key in Settings.", details: errorText }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      fraudData = await fraudResponse.json();
+
+    } else {
+      return new Response(
+        JSON.stringify({ error: `Unknown service: ${service}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
-      JSON.stringify(fraudData),
+      JSON.stringify({ ...fraudData, _service: service }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 

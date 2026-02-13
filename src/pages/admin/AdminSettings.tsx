@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Save, Globe, Phone, MapPin, Share2, Loader2, Image, Facebook, BarChart3, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Settings, Save, Globe, Phone, MapPin, Share2, Loader2, Image, Facebook, BarChart3, AlertCircle, CheckCircle2, ShieldAlert } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -61,6 +62,11 @@ const defaultSettings = {
   facebook_pixel_id: "",
   facebook_pixel_access_token: "",
   facebook_pixel_test_code: "",
+  
+  // Fraud Check
+  fraud_check_service: "fraudbd",
+  fraud_check_api_key: "",
+  fraud_check_api_secret: "",
 };
 
 const AdminSettings = () => {
@@ -158,11 +164,12 @@ const AdminSettings = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid grid-cols-3 sm:grid-cols-5 w-full h-auto gap-1 p-1">
+        <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full h-auto gap-1 p-1">
           <TabsTrigger value="general" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.general)}</TabsTrigger>
           <TabsTrigger value="contact" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.contact)}</TabsTrigger>
           <TabsTrigger value="social" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.social)}</TabsTrigger>
           <TabsTrigger value="facebook-pixel" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.pixel)}</TabsTrigger>
+          <TabsTrigger value="fraud-check" className="text-xs sm:text-sm py-2">ফ্রড চেক</TabsTrigger>
           <TabsTrigger value="seo" className="text-xs sm:text-sm py-2">{t(adminTranslations.settings.seo)}</TabsTrigger>
         </TabsList>
 
@@ -555,6 +562,126 @@ const AdminSettings = () => {
                   <li>Pixel ID কপি করে এখানে পেস্ট করুন</li>
                 </ol>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="fraud-check" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5" />
+                ফ্রড চেক সেটআপ
+              </CardTitle>
+              <CardDescription>
+                অর্ডার ম্যানেজমেন্টে কাস্টমারের ফোন নম্বর দিয়ে কুরিয়ার ডেলিভারি হিস্টোরি চেক করুন
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {settings.fraud_check_api_key ? (
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    ফ্রড চেক সক্রিয় আছে। সার্ভিস: <span className="font-mono font-medium capitalize">{settings.fraud_check_service || "fraudbd"}</span>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800">
+                    ফ্রড চেক এখনো সেটআপ করা হয়নি। নিচে API তথ্য দিন।
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">সার্ভিস সিলেক্ট করুন *</Label>
+                  <Select
+                    value={settings.fraud_check_service || "fraudbd"}
+                    onValueChange={(value) => updateSetting("fraud_check_service", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="সার্ভিস সিলেক্ট করুন" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fraudbd">FraudBD (Steadfast + Pathao + RedX)</SelectItem>
+                      <SelectItem value="steadfast">Steadfast Only</SelectItem>
+                      <SelectItem value="fraudchecker">FraudChecker.link</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    {settings.fraud_check_service === "steadfast"
+                      ? "শুধু Steadfast কুরিয়ারের ডেলিভারি ডেটা দেখাবে।"
+                      : settings.fraud_check_service === "fraudchecker"
+                      ? "FraudChecker.link এর মাধ্যমে একাধিক কুরিয়ারের ডেটা দেখাবে।"
+                      : "FraudBD সব জনপ্রিয় কুরিয়ারের (Steadfast, Pathao, RedX) ডেটা একসাথে দেখাবে।"}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">API Key *</Label>
+                  <Input
+                    value={settings.fraud_check_api_key}
+                    onChange={(e) => updateSetting("fraud_check_api_key", e.target.value)}
+                    placeholder={settings.fraud_check_service === "steadfast" ? "Steadfast API Key" : "API Key"}
+                    className="font-mono"
+                    type="password"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    {settings.fraud_check_service === "fraudbd"
+                      ? "fraudbd.com থেকে API key সংগ্রহ করুন।"
+                      : settings.fraud_check_service === "steadfast"
+                      ? "Steadfast কুরিয়ার ড্যাশবোর্ড থেকে API key সংগ্রহ করুন।"
+                      : "fraudchecker.link থেকে API key সংগ্রহ করুন।"}
+                  </p>
+                </div>
+
+                {settings.fraud_check_service === "steadfast" && (
+                  <div className="space-y-2">
+                    <Label className="text-base font-semibold">API Secret</Label>
+                    <Input
+                      value={settings.fraud_check_api_secret}
+                      onChange={(e) => updateSetting("fraud_check_api_secret", e.target.value)}
+                      placeholder="Steadfast Secret Key"
+                      className="font-mono"
+                      type="password"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Steadfast কুরিয়ার ড্যাশবোর্ড থেকে Secret key সংগ্রহ করুন।
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <Card className="bg-muted/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    কি ডেটা পাবেন?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>মোট অর্ডার সংখ্যা</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>সফল ডেলিভারি সংখ্যা</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>বাতিল অর্ডার সংখ্যা</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      <span>সফলতার হার (%)</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </CardContent>
           </Card>
         </TabsContent>
