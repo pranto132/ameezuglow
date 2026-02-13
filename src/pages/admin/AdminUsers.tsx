@@ -99,9 +99,15 @@ const AdminUsers = () => {
       setRole("staff");
     },
     onError: (error: Error) => {
+      const msg = error.message || "";
+      const description = msg.includes("already been registered")
+        ? language === "bn"
+          ? "এই ইমেইল দিয়ে আগে থেকেই একটি অ্যাকাউন্ট আছে"
+          : "A user with this email address has already been registered"
+        : msg || t(tr.users.error);
       toast({
         title: t(tr.common.error),
-        description: error.message || t(tr.users.error),
+        description,
         variant: "destructive",
       });
     },
