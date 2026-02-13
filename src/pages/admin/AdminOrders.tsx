@@ -906,31 +906,106 @@ const AdminOrders = () => {
             )}
             {fraudData && !fraudLoading && (
               <div className="space-y-4">
-                {/* If FraudBD returns courier-wise data */}
-                {fraudData.data && typeof fraudData.data === "object" ? (
-                  Object.entries(fraudData.data).map(([courier, stats]: [string, any]) => (
-                    <div key={courier} className="bg-muted/50 rounded-lg p-4">
-                      <h4 className="font-semibold capitalize mb-3">{courier}</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="text-center p-2 bg-background rounded-md">
-                          <p className="text-lg font-bold">{stats?.total_order ?? stats?.total ?? "-"}</p>
-                          <p className="text-xs text-muted-foreground">{language === "bn" ? "মোট অর্ডার" : "Total"}</p>
+                {/* FraudBD response: data.Summaries (per courier) + data.TotalSummary */}
+                {fraudData.data?.Summaries && typeof fraudData.data.Summaries === "object" ? (
+                  <>
+                    {/* Per-courier breakdown */}
+                    {Object.entries(fraudData.data.Summaries).map(([courier, stats]: [string, any]) => (
+                      <div key={courier} className="bg-muted/50 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          {stats?.logo && (
+                            <img src={stats.logo} alt={courier} className="w-6 h-6 rounded object-contain" />
+                          )}
+                          <h4 className="font-semibold">{courier}</h4>
+                          {stats?.risk_level && (
+                            <Badge variant={stats.risk_level === "low" ? "default" : "destructive"} className="ml-auto text-xs">
+                              {stats.risk_level === "low" ? "🟢" : stats.risk_level === "medium" ? "🟡" : "🔴"} {stats.risk_level}
+                            </Badge>
+                          )}
                         </div>
-                        <div className="text-center p-2 bg-background rounded-md">
-                          <p className="text-lg font-bold text-green-600">{stats?.success ?? stats?.delivered ?? "-"}</p>
-                          <p className="text-xs text-muted-foreground">{language === "bn" ? "সফল" : "Success"}</p>
-                        </div>
-                        <div className="text-center p-2 bg-background rounded-md">
-                          <p className="text-lg font-bold text-destructive">{stats?.cancel ?? stats?.cancelled ?? "-"}</p>
-                          <p className="text-xs text-muted-foreground">{language === "bn" ? "বাতিল" : "Cancel"}</p>
-                        </div>
+                        {/* Rating-based response (Pathao style) */}
+                        {stats?.data_type === "rating" && stats?.customer_rating ? (
+                          <div className="text-center p-3 bg-background rounded-md">
+                            <p className="text-sm font-medium capitalize">{stats.customer_rating.replace(/_/g, " ")}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{language === "bn" ? "কাস্টমার রেটিং" : "Customer Rating"}</p>
+                          </div>
+                        ) : (
+                          /* Count-based response */
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="text-center p-2 bg-background rounded-md">
+                              <p className="text-lg font-bold">{stats?.total_order ?? stats?.total ?? stats?.total_parcel ?? "-"}</p>
+                              <p className="text-xs text-muted-foreground">{language === "bn" ? "মোট" : "Total"}</p>
+                            </div>
+                            <div className="text-center p-2 bg-background rounded-md">
+                              <p className="text-lg font-bold text-green-600">{stats?.success ?? stats?.delivered ?? stats?.success_parcel ?? "-"}</p>
+                              <p className="text-xs text-muted-foreground">{language === "bn" ? "সফল" : "Success"}</p>
+                            </div>
+                            <div className="text-center p-2 bg-background rounded-md">
+                              <p className="text-lg font-bold text-destructive">{stats?.cancel ?? stats?.cancelled ?? stats?.cancel_parcel ?? "-"}</p>
+                              <p className="text-xs text-muted-foreground">{language === "bn" ? "বাতিল" : "Cancel"}</p>
+                            </div>
+                          </div>
+                        )}
+                        {(stats?.success_ratio || stats?.success_rate) && (
+                          <div className="mt-2 text-center">
+                            <Badge variant={Number(stats?.success_ratio || stats?.success_rate) > 50 ? "default" : "destructive"}>
+                              {language === "bn" ? "সফলতার হার" : "Success Rate"}: {stats?.success_ratio || stats?.success_rate}%
+                            </Badge>
+                          </div>
+                        )}
                       </div>
-                      {(stats?.success_ratio || stats?.success_rate) && (
-                        <div className="mt-2 text-center">
-                          <Badge variant={Number(stats?.success_ratio || stats?.success_rate) > 50 ? "default" : "destructive"}>
-                            {language === "bn" ? "সফলতার হার" : "Success Rate"}: {stats?.success_ratio || stats?.success_rate}%
-                          </Badge>
+                    ))}
+
+                    {/* Total Summary */}
+                    {fraudData.data.TotalSummary && (
+                      <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                        <h4 className="font-semibold mb-3">{language === "bn" ? "সর্বমোট সারাংশ" : "Total Summary"}</h4>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-2 bg-background rounded-md">
+                            <p className="text-lg font-bold">{fraudData.data.TotalSummary.total_order ?? fraudData.data.TotalSummary.total ?? "-"}</p>
+                            <p className="text-xs text-muted-foreground">{language === "bn" ? "মোট" : "Total"}</p>
+                          </div>
+                          <div className="text-center p-2 bg-background rounded-md">
+                            <p className="text-lg font-bold text-green-600">{fraudData.data.TotalSummary.success ?? fraudData.data.TotalSummary.delivered ?? "-"}</p>
+                            <p className="text-xs text-muted-foreground">{language === "bn" ? "সফল" : "Success"}</p>
+                          </div>
+                          <div className="text-center p-2 bg-background rounded-md">
+                            <p className="text-lg font-bold text-destructive">{fraudData.data.TotalSummary.cancel ?? fraudData.data.TotalSummary.cancelled ?? "-"}</p>
+                            <p className="text-xs text-muted-foreground">{language === "bn" ? "বাতিল" : "Cancel"}</p>
+                          </div>
                         </div>
+                        {(fraudData.data.TotalSummary.success_ratio || fraudData.data.TotalSummary.success_rate) && (
+                          <div className="mt-2 text-center">
+                            <Badge variant={Number(fraudData.data.TotalSummary.success_ratio || fraudData.data.TotalSummary.success_rate) > 50 ? "default" : "destructive"}>
+                              {language === "bn" ? "সফলতার হার" : "Success Rate"}: {fraudData.data.TotalSummary.success_ratio || fraudData.data.TotalSummary.success_rate}%
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : fraudData.data && typeof fraudData.data === "object" ? (
+                  /* Fallback for other API formats (Steadfast, etc.) */
+                  Object.entries(fraudData.data).map(([key, stats]: [string, any]) => (
+                    <div key={key} className="bg-muted/50 rounded-lg p-4">
+                      <h4 className="font-semibold capitalize mb-3">{key}</h4>
+                      {typeof stats === "object" && stats !== null ? (
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-2 bg-background rounded-md">
+                            <p className="text-lg font-bold">{stats?.total_order ?? stats?.total ?? "-"}</p>
+                            <p className="text-xs text-muted-foreground">{language === "bn" ? "মোট" : "Total"}</p>
+                          </div>
+                          <div className="text-center p-2 bg-background rounded-md">
+                            <p className="text-lg font-bold text-green-600">{stats?.success ?? stats?.delivered ?? "-"}</p>
+                            <p className="text-xs text-muted-foreground">{language === "bn" ? "সফল" : "Success"}</p>
+                          </div>
+                          <div className="text-center p-2 bg-background rounded-md">
+                            <p className="text-lg font-bold text-destructive">{stats?.cancel ?? stats?.cancelled ?? "-"}</p>
+                            <p className="text-xs text-muted-foreground">{language === "bn" ? "বাতিল" : "Cancel"}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm">{String(stats)}</p>
                       )}
                     </div>
                   ))
