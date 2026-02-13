@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { openInvoiceInNewTab, openMultipleInvoicesInNewTab } from "@/utils/printInvoice";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Search, Eye, Loader2, FileText, Truck, Trash2, CheckSquare, ExternalLink, Printer } from "lucide-react";
+import { Search, Eye, Loader2, FileText, Truck, Trash2, CheckSquare, ExternalLink, Printer, ShieldAlert } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { adminTranslations, useAdminTranslation } from "@/lib/adminTranslations";
 
@@ -35,6 +36,10 @@ const AdminOrders = () => {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [bulkActionOpen, setBulkActionOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<string>("");
+  const [fraudCheckPhone, setFraudCheckPhone] = useState<string | null>(null);
+  const [fraudData, setFraudData] = useState<any>(null);
+  const [fraudLoading, setFraudLoading] = useState(false);
+  const [fraudError, setFraudError] = useState<string | null>(null);
 
   const statusOptions = [
     { value: "pending", label: t(tr.orderStatus.pending), color: "bg-orange-100 text-orange-700" },
@@ -293,6 +298,36 @@ const AdminOrders = () => {
     bulkStatusMutation.mutate({ orderIds: selectedOrders, status: bulkStatus });
   };
 
+  const handleFraudCheck = async (phone: string) => {
+    setFraudCheckPhone(phone);
+    setFraudData(null);
+    setFraudError(null);
+    setFraudLoading(true);
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const token = currentSession?.access_token;
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fraud-check`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ phone_number: phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFraudError(data?.error || "Failed to check");
+      } else {
+        setFraudData(data);
+      }
+    } catch (err: any) {
+      setFraudError(err.message || "Network error");
+    } finally {
+      setFraudLoading(false);
+    }
+  };
+
   const filteredOrders = orders?.filter((order) => {
     const matchesSearch =
       order.order_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -498,7 +533,18 @@ const AdminOrders = () => {
                   <TableCell>
                     <div>
                       <p className="font-medium">{order.customer_name}</p>
-                      <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5"
+                          onClick={() => handleFraudCheck(order.customer_phone)}
+                          title={language === "bn" ? "ফ্রড চেক" : "Fraud Check"}
+                        >
+                          <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                        </Button>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-bold">৳{Number(order.total).toLocaleString()}</TableCell>
@@ -835,6 +881,67 @@ const AdminOrders = () => {
               </div>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Fraud Check Dialog */}
+      <Dialog open={!!fraudCheckPhone} onOpenChange={(open) => { if (!open) { setFraudCheckPhone(null); setFraudData(null); setFraudError(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-500" />
+              {language === "bn" ? "ফ্রড চেক" : "Fraud Check"} - {fraudCheckPhone}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {fraudLoading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">{language === "bn" ? "চেক করা হচ্ছে..." : "Checking..."}</span>
+              </div>
+            )}
+            {fraudError && (
+              <div className="bg-destructive/10 text-destructive p-4 rounded-lg text-sm">
+                {fraudError}
+              </div>
+            )}
+            {fraudData && !fraudLoading && (
+              <div className="space-y-4">
+                {/* If FraudBD returns courier-wise data */}
+                {fraudData.data && typeof fraudData.data === "object" ? (
+                  Object.entries(fraudData.data).map(([courier, stats]: [string, any]) => (
+                    <div key={courier} className="bg-muted/50 rounded-lg p-4">
+                      <h4 className="font-semibold capitalize mb-3">{courier}</h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="text-center p-2 bg-background rounded-md">
+                          <p className="text-lg font-bold">{stats?.total_order ?? stats?.total ?? "-"}</p>
+                          <p className="text-xs text-muted-foreground">{language === "bn" ? "মোট অর্ডার" : "Total"}</p>
+                        </div>
+                        <div className="text-center p-2 bg-background rounded-md">
+                          <p className="text-lg font-bold text-green-600">{stats?.success ?? stats?.delivered ?? "-"}</p>
+                          <p className="text-xs text-muted-foreground">{language === "bn" ? "সফল" : "Success"}</p>
+                        </div>
+                        <div className="text-center p-2 bg-background rounded-md">
+                          <p className="text-lg font-bold text-destructive">{stats?.cancel ?? stats?.cancelled ?? "-"}</p>
+                          <p className="text-xs text-muted-foreground">{language === "bn" ? "বাতিল" : "Cancel"}</p>
+                        </div>
+                      </div>
+                      {(stats?.success_ratio || stats?.success_rate) && (
+                        <div className="mt-2 text-center">
+                          <Badge variant={Number(stats?.success_ratio || stats?.success_rate) > 50 ? "default" : "destructive"}>
+                            {language === "bn" ? "সফলতার হার" : "Success Rate"}: {stats?.success_ratio || stats?.success_rate}%
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <pre className="text-xs text-left whitespace-pre-wrap">{JSON.stringify(fraudData, null, 2)}</pre>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
